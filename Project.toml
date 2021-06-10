@@ -1,0 +1,13 @@
+name = "ANOVADDPTest"
+uuid = "39310853-6f77-48f5-bb9a-ec22dd77aa3b"
+authors = ["Iván Gutiérrez <ivangutierrez1988@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
