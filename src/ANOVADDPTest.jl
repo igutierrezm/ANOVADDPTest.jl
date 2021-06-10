@@ -6,6 +6,11 @@ using DPMNeal3: GenericBlock, update!
 import DPMNeal3: update!, update_sb!, logpredlik
 export GenericBlock, SpecificBlock, update!
 
+"""
+    SpecificBlock(G; v0 = 2.0, r0 = 1.0, u0 = 0.0, s0 = 1.0)
+
+TODO
+"""
 struct SpecificBlock
     G::Int
     v0::Float64
