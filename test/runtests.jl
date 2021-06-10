@@ -1,14 +1,9 @@
 using ANOVADDPTest
 using SpecialFunctions
-using StatsBase
+using StatsBase: denserank
 using Statistics: mean, var
 using Random
 using Test
-
-struct MyData
-    x::Vector{Int}
-    y::Vector{Float64}
-end
 
 @testset "SpecificBlock" begin
     G = 4
@@ -38,7 +33,7 @@ end
 
 @testset "update_sb! (1)" begin
     rng = MersenneTwister(1)
-    data = MyData([1], [1.0])
+    data = Data([1], [1.0])
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
@@ -55,7 +50,7 @@ end
 
 @testset "update_sb! (2)" begin
     rng = MersenneTwister(1)
-    data = MyData([1], [1.0])
+    data = Data([1], [1.0])
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
@@ -73,7 +68,7 @@ end
 
 @testset "logpredlik (empty clusters)" begin
     rng = MersenneTwister(1)
-    data = MyData([1], [1.0])
+    data = Data([1], [1.0])
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
@@ -90,7 +85,7 @@ end
 
 @testset "logpredlik (non-empty clusters)" begin
     rng = MersenneTwister(1)
-    data = MyData([1, 1], [1.0, 0.0])
+    data = Data([1, 1], [1.0, 0.0])
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 2)
@@ -112,7 +107,7 @@ end
 
 @testset "update! (1)" begin
     rng = MersenneTwister(1)
-    data = MyData([1, 1], [1.0, 0.0])
+    data = Data([1, 1], [1.0, 0.0])
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 2)
@@ -124,9 +119,9 @@ end
     N, F = 1000, 3
     y = randn(rng, N)
     x = [rand(rng, 1:3, F) for _ in 1:N]
-    x = StatsBase.denserank(x)
+    x = denserank(x)
     G = length(unique(x))
-    data = MyData(x, y)
+    data = Data(x, y)
     sb = SpecificBlock(G)
     gb = GenericBlock(rng, N)
     update!(rng, sb, gb, data)
@@ -137,7 +132,7 @@ end
     N, F = 1000, 1
     y = randn(rng, N)
     x = [rand(rng, 1:3, F) for _ in 1:N]
-    x = StatsBase.denserank(x)
+    x = denserank(x)
     for i = 1:N
         if x[i] == 2
             y[i] += 10.0
@@ -145,11 +140,86 @@ end
     end
     y .= (y .- mean(y)) ./ √var(y)
     G = length(unique(x))
-    data = MyData(x, y)
+    data = Data(x, y)
     sb = SpecificBlock(G)
     gb = GenericBlock(rng, N; K0 = 1)
     for t in 1:10
         update!(rng, sb, gb, data)
         println(sb.γ[:])
     end
+end
+
+@testset "fit (1)" begin
+    rng = MersenneTwister(1)
+    N, F = 1000, 1
+    y = randn(rng, N)
+    x = [rand(rng, 1:3, F) for _ in 1:N]
+    x = denserank(x)
+    for i = 1:N
+        if x[i] == 2
+            y[i] += 10.0
+        end
+    end
+    y .= (y .- mean(y)) ./ √var(y)
+    fit(y, x)
+    γb = mean(fit(y, x))
+    println(γb)
+    @test γb[1] ≈ 1.0
+    @test γb[2] ≥ 0.95
+    @test γb[3] ≤ 0.05
+end
+
+@testset "fit (2)" begin
+    rng = MersenneTwister(1)
+    N, F = 1000, 1
+    y = randn(rng, N)
+    x = [rand(rng, 1:3, F) for _ in 1:N]
+    x = denserank(x)
+    for i = 1:N
+        if x[i] == 3
+            y[i] += 10.0
+        end
+    end
+    y .= (y .- mean(y)) ./ √var(y)
+    fit(y, x)
+    γb = mean(fit(y, x))
+    println(γb)
+    @test γb[1] ≈ 1.0
+    @test γb[2] ≤ 0.05
+    @test γb[3] ≥ 0.95
+end
+
+@testset "fit (3)" begin
+    rng = MersenneTwister(1)
+    N, F = 1000, 1
+    y = randn(rng, N)
+    x = [rand(rng, 1:3, F) for _ in 1:N]
+    x = denserank(x)
+    for i = 1:N
+        if x[i] != 1
+            y[i] += 10.0
+        end
+    end
+    y .= (y .- mean(y)) ./ √var(y)
+    fit(y, x)
+    γb = mean(fit(y, x))
+    println(γb)
+    @test γb[1] ≈ 1.0
+    @test γb[2] ≥ 0.95
+    @test γb[3] ≥ 0.95
+end
+
+@testset "fit (4)" begin
+    rng = MersenneTwister(1)
+    N, F = 1000, 1
+    y = randn(rng, N)
+    x = [rand(rng, 1:3, F) for _ in 1:N]
+    x = denserank(x)
+    y .= (y .- mean(y)) ./ √var(y)
+    fit(y, x)
+    γb = mean(fit(y, x))
+    println(γb)
+    @test γb[1] ≈ 1.0
+    @test γb[2] ≤ 0.05
+    @test γb[3] ≤ 0.05
 end

@@ -1,10 +1,16 @@
 module ANOVADDPTest
 
+using Random: MersenneTwister
 using SpecialFunctions
 using Parameters: @unpack
 using DPMNeal3: GenericBlock, update!
 import DPMNeal3: update!, update_sb!, logpredlik
-export GenericBlock, SpecificBlock, update!
+export GenericBlock, SpecificBlock, Data, update!, fit
+
+struct Data
+    x::Vector{Int}
+    y::Vector{Float64}
+end
 
 """
     SpecificBlock(G; v0 = 2.0, r0 = 1.0, u0 = 0.0, s0 = 1.0)
@@ -173,6 +179,23 @@ function logmglik(sb::SpecificBlock, j, k)
         0.5 * log(r0 / r1[k][j]) -
         0.5 * log(π) * (r1[k][j] - r0)
     )
+end
+
+function fit(y, x; seed = 1, iter = 100, warmup = iter ÷ 2, thin = 1)
+    rng = MersenneTwister(seed)
+    N = length(y)
+    G = length(unique(x))
+    data = Data(x, y)
+    sb = SpecificBlock(G)
+    gb = GenericBlock(rng, N)
+    γs = [zeros(Bool, G) for _ = 1:(iter - warmup) ÷ thin]
+    for t in 1:iter
+        update!(rng, sb, gb, data)
+        if t > warmup
+            γs[(t - warmup) ÷ thin] = sb.γ[:]
+        end
+    end
+    return γs
 end
 
 end # module
