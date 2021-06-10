@@ -27,7 +27,7 @@ uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
 [[DPMNeal3]]
 deps = ["Distributions", "Parameters", "Random"]
-git-tree-sha1 = "ed14370ce2ce6af50ed53fd8f1904bbe1ac5545d"
+git-tree-sha1 = "99c1e66464a92562ef793017233548f5f8223459"
 repo-rev = "master"
 repo-url = "https://github.com/igutierrezm/DPMNeal3.jl"
 uuid = "af0b21b6-ea01-48a9-a6c6-8ff6351a99f2"

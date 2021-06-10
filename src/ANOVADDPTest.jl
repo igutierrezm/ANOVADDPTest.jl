@@ -4,7 +4,7 @@ using Random: MersenneTwister
 using SpecialFunctions
 using Parameters: @unpack
 using DPMNeal3: GenericBlock, update!
-import DPMNeal3: update!, update_sb!, logpredlik
+import DPMNeal3: update!, update_hyperpars!, update_suffstats!, logpredlik
 export GenericBlock, SpecificBlock, Data, update!, fit
 
 struct Data
@@ -100,12 +100,11 @@ function update_suffstats!(sb::SpecificBlock, gb::GenericBlock, data)
     end
 end
 
-function update_sb!(rng, sb::SpecificBlock, gb::GenericBlock, data)
+function update_hyperpars!(rng, sb::SpecificBlock, gb::GenericBlock, data)
     update_γ!(rng, sb, gb, data)
-    update_suffstats!(sb, gb, data)
 end
 
-function update_sb!(rng, sb::SpecificBlock, gb::GenericBlock, data, i, k1, k2)
+function update_suffstats!(sb::SpecificBlock, gb::GenericBlock, data, i, k1, k2)
     @unpack n = gb
     @unpack y, x = data
     @unpack v1, r1, u1, s1, γ = sb
