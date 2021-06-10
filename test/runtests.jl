@@ -42,7 +42,7 @@ end
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
-    ANOVADDPTest.update_sb!(sb, gb, data)
+    ANOVADDPTest.update_sb!(rng, sb, gb, data)
     @test sb.v1[1][1] ≈ 2.0
     @test sb.v1[2][1] ≈ 1.0
     @test sb.r1[1][1] ≈ 2.0
@@ -59,8 +59,8 @@ end
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
-    ANOVADDPTest.update_sb!(sb, gb, data)
-    ANOVADDPTest.update_sb!(sb, gb, data, 1, 1, 2)
+    ANOVADDPTest.update_sb!(rng, sb, gb, data)
+    ANOVADDPTest.update_sb!(rng, sb, gb, data, 1, 1, 2)
     @test sb.v1[1][1] ≈ 1.0
     @test sb.v1[2][1] ≈ 2.0
     @test sb.r1[1][1] ≈ 1.0
@@ -77,7 +77,7 @@ end
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 1)
-    ANOVADDPTest.update_sb!(sb, gb, data)
+    ANOVADDPTest.update_sb!(rng, sb, gb, data)
     @test ANOVADDPTest.logpredlik(sb, gb, data, 1, first(gb.P)) ≈ (
         0.5 * 1.0 * log(1.0) -
         0.5 * 2.0 * log(1.5) +
@@ -94,7 +94,7 @@ end
     v0, r0, u0, s0 = 1.0, 1.0, 0.0, 1.0
     sb = SpecificBlock(1; v0, r0, u0, s0)
     gb = GenericBlock(rng, 2)
-    ANOVADDPTest.update_sb!(sb, gb, data)
+    ANOVADDPTest.update_sb!(rng, sb, gb, data)
     @test sb.v1[1][1] ≈ 3.0
     @test sb.r1[1][1] ≈ 3.0
     @test sb.u1[1][1] ≈ 1/3
@@ -132,20 +132,6 @@ end
     update!(rng, sb, gb, data)
 end
 
-@testset "update_γ!" begin
-    rng = MersenneTwister(1)
-    N, F = 1000, 1
-    y = randn(rng, N)
-    x = [rand(rng, 1:3, F) for _ in 1:N]
-    x = StatsBase.denserank(x)
-    G = length(unique(x))
-    data = MyData(x, y)
-    sb = SpecificBlock(G)
-    gb = GenericBlock(rng, N)
-    update!(rng, sb, gb, data)
-    ANOVADDPTest.update_γ!(rng, sb, gb, data)
-end
-
 @testset "final_example" begin
     rng = MersenneTwister(1)
     N, F = 1000, 1
@@ -153,7 +139,7 @@ end
     x = [rand(rng, 1:3, F) for _ in 1:N]
     x = StatsBase.denserank(x)
     for i = 1:N
-        if x[i] == 3
+        if x[i] == 2
             y[i] += 10.0
         end
     end
@@ -164,7 +150,6 @@ end
     gb = GenericBlock(rng, N; K0 = 1)
     for t in 1:10
         update!(rng, sb, gb, data)
-        ANOVADDPTest.update_γ!(rng, sb, gb, data)
         println(sb.γ[:])
     end
 end
