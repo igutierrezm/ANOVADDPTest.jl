@@ -181,8 +181,8 @@ function logmglik(sb::SpecificBlock, j, k)
     )
 end
 
-function fit(y, x; seed = 1, iter = 100, warmup = iter ÷ 2, thin = 1)
-    rng = MersenneTwister(seed)
+function fit(y, x; seed = 0, iter = 100, warmup = iter ÷ 2, thin = 1)
+    rng = seed == 0 ? MersenneTwister() : MersenneTwister()
     N = length(y)
     G = length(unique(x))
     data = Data(x, y)
