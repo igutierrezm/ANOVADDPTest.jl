@@ -3,6 +3,11 @@ uuid = "39310853-6f77-48f5-bb9a-ec22dd77aa3b"
 authors = ["Iván Gutiérrez <ivangutierrez1988@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+DPMNeal3 = "af0b21b6-ea01-48a9-a6c6-8ff6351a99f2"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
 [compat]
 julia = "1.6"
 
