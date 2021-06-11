@@ -161,8 +161,7 @@ end
         end
     end
     y .= (y .- mean(y)) ./ √var(y)
-    fit(y, x; seed = 1)
-    γb = mean(fit(y, x))
+    γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
     @test γb[2] ≥ 0.95
     @test γb[3] ≤ 0.05
@@ -180,8 +179,7 @@ end
         end
     end
     y .= (y .- mean(y)) ./ √var(y)
-    fit(y, x; seed = 1)
-    γb = mean(fit(y, x))
+    γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
     @test γb[2] ≤ 0.05
     @test γb[3] ≥ 0.95
@@ -199,8 +197,7 @@ end
         end
     end
     y .= (y .- mean(y)) ./ √var(y)
-    fit(y, x; seed = 1)
-    γb = mean(fit(y, x))
+    γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
     @test γb[2] ≥ 0.95
     @test γb[3] ≥ 0.95
@@ -213,9 +210,7 @@ end
     x = [rand(rng, 1:3, F) for _ in 1:N]
     x = denserank(x)
     y .= (y .- mean(y)) ./ √var(y)
-    fit(y, x)
-    γb = mean(fit(y, x))
-    println(γb)
+    γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
     @test γb[2] ≤ 0.05
     @test γb[3] ≤ 0.05
