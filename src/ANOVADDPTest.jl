@@ -1,6 +1,7 @@
 module ANOVADDPTest
 
 using Random: MersenneTwister
+using Distributions: logpdf
 using SpecialFunctions
 using Parameters: @unpack
 using DPMNeal3: GenericBlock, update!
