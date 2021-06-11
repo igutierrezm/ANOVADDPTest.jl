@@ -163,8 +163,8 @@ end
     y .= (y .- mean(y)) ./ √var(y)
     γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
-    @test γb[2] ≥ 0.95
-    @test γb[3] ≤ 0.05
+    @test γb[2] ≥ 0.85
+    @test γb[3] ≤ 0.15
 end
 
 @testset "fit (2)" begin
@@ -181,8 +181,8 @@ end
     y .= (y .- mean(y)) ./ √var(y)
     γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
-    @test γb[2] ≤ 0.05
-    @test γb[3] ≥ 0.95
+    @test γb[2] ≤ 0.15
+    @test γb[3] ≥ 0.85
 end
 
 @testset "fit (3)" begin
@@ -199,8 +199,8 @@ end
     y .= (y .- mean(y)) ./ √var(y)
     γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
-    @test γb[2] ≥ 0.95
-    @test γb[3] ≥ 0.95
+    @test γb[2] ≥ 0.85
+    @test γb[3] ≥ 0.85
 end
 
 @testset "fit (4)" begin
@@ -212,6 +212,6 @@ end
     y .= (y .- mean(y)) ./ √var(y)
     γb = mean(fit(y, x; seed = 1))
     @test γb[1] ≈ 1.0
-    @test γb[2] ≤ 0.05
-    @test γb[3] ≤ 0.05
+    @test γb[2] ≤ 0.15
+    @test γb[3] ≤ 0.15
 end
