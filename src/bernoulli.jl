@@ -1,38 +1,58 @@
-struct BernoulliBetaSB
-    G::Int
+struct BernoulliData
+    x::Vector{Int}
+    y::Vector{Bool}
+end
+
+struct BernoulliDDP <: AbstractDPM
+    parent::DPM
     a0::Float64
     b0::Float64
-    a1::Vector{Vector{Int}}
-    b1::Vector{Vector{Int}}
+    a1::Vector{Vector{Float64}}
+    b1::Vector{Vector{Float64}}
     πγ::Vector{Float64}
     γ::Vector{Bool}
-    function PoissonGammaSB(G; a0 = 2.0, b0 = 1.0)
-        γ = ones(Bool, G)
+    G::Int
+    function BernoulliDDP(
+            rng::AbstractRNG, 
+            N::Int, 
+            G::Int; 
+            K0::Int = 1, 
+            αa0::Float64 = 2.0, 
+            αb0::Float64 = 4.0, 
+            a0::Float64 = 2.0, 
+            b0::Float64 = 4.0
+        )
+        parent = DPM(rng, N; K0, a0 = αa0, b0 = αb0)
+        a1 = [a0 * ones(G)]
+        b1 = [b0 * ones(G)]
         πγ = ones(G) / G
-        a1 = [a0 * ones(Int, G)]
-        b1 = [b0 * ones(Int, G)]
-        new(G, a0, b0, a1, b1, πγ, γ)
+        γ = ones(Bool, G)
+        new(parent, a0, b0, a1, b1, πγ, γ, G)
     end
 end
 
-function resize!(sb::BernoulliBetaSB, n::Integer)
-    @unpack a1, b1 = sb
-    while length(a1) < n
-        push!(a1, zeros(Int, G))
-        push!(b1, zeros(Int, G))
-    end    
+function parent_dpm(m::BernoulliDDP)
+    m.parent
 end
 
-function update_suffstats!(sb::BernoulliBetaSB, gb::GenericBlock, data)
-    @unpack y, x = data
-    @unpack a1, b1, γ = sb
-    @unpack N, A, d, n = gb
-    length(a1) < length(n) && resize!(sb, length(n))
-    for k in A
+function add_cluster!(m::BernoulliDDP)
+    @extract m : a0 b0 a1 b1 G
+    push!(a1, a0 * ones(Int, G))
+    push!(b1, b0 * ones(Int, G))
+end
+
+function update_suffstats!(m::BernoulliDDP, data)
+    @extract data : y x
+    @extract m : a0 b0 a1 b1 γ
+    d = cluster_labels(m)
+    while length(a1) < cluster_capacity(m) 
+        add_cluster!(m)
+    end
+    for k in active_clusters(m)
         a1[k] .= a0
         b1[k] .= b0
     end
-    for i = 1:N
+    for i = 1:length(y)
         di = d[i]
         zi = iszero(γ[x[i]]) ? 1 : x[i]
         a1[di][zi] += y[i]
@@ -40,10 +60,27 @@ function update_suffstats!(sb::BernoulliBetaSB, gb::GenericBlock, data)
     end
 end
 
-function logpredlik(sb::BernoulliBetaSB, gb::GenericBlock, data, i, k)
-    @unpack a1, b1, γ = sb
-    @unpack y, x = data
-    @unpack d = gb
+function update_suffstats!(m::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
+    @extract data : y x
+    @extract m : a0 b0 a1 b1 γ
+    while length(a1) < cluster_capacity(m) 
+        add_cluster!(m)
+    end
+    zi = iszero(γ[x[i]]) ? 1 : x[i]
+
+    # Modify cluster/group k2/zi
+    a1[k2][zi] += y[i]
+    b1[k2][zi] += 1 - y[i]
+
+    # Modify cluster/group k1/zi
+    a1[k1][zi] -= y[i]
+    b1[k1][zi] -= 1 - y[i]
+end
+
+function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
+    d = cluster_labels(m)
+    @extract m : a1 b1 γ
+    @extract data : y x
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j] - (d[i] == k) * y[i]
     b1kj = b1[k][j] - (d[i] == k)
@@ -54,11 +91,7 @@ function logpredlik(sb::BernoulliBetaSB, gb::GenericBlock, data, i, k)
     end
 end
 
-function logmglik(sb::BernoulliBetaSB, j, k)
-    @unpack a0, b0, a1, b1, sumlogu = sb
-    return (
-        a0 * log(b0) - a1[k][j] * log(b1[k][j]) +
-        loggamma(a1[k][j]) - loggamma(a0) -
-        sumlogu[k][j]
-    )
+function logmglik(m::BernoulliDDP, j::Int, k::Int)
+    @extract m : a0 b0 a1 b1
+    return logbeta(a0, b0) - logbeta(a1, b1)
 end

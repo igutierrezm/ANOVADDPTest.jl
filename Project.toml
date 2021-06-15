@@ -6,12 +6,15 @@ version = "0.1.0"
 [deps]
 DPMNeal3 = "af0b21b6-ea01-48a9-a6c6-8ff6351a99f2"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+ExtractMacro = "f86d3d12-fd5b-522c-99e9-61577282a1e9"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-julia = "1"
+Distributions = "0.25.3"
+SpecialFunctions = "1.5.1"
+ExtractMacro = "1.0.0"
+julia = "1.6.1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
