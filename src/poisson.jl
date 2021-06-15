@@ -102,3 +102,5 @@ function logmglik(m::PoissonDDP, j::Int, k::Int)
         sumlogu[k][j]
     )
 end
+
+# Tõnu Kollo (tonu.kollo@ut.ee) University of Tartu, Tartu, Estonia 
