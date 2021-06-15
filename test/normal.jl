@@ -139,20 +139,20 @@ end
     end
 end
 
-@testset "fit (1)" begin
+@testset "train (1)" begin
     rng = MersenneTwister(1)
-    N, G, K0 = 500, 3, 1
+    N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
     data = NormalData(x, y)
     m = NormalDDP(rng, N, G; K0)
-    γb = fit(rng, m, data)
+    γb = train(rng, m, data)
     @test all(mode(γb) .== [true, false, false])
 end
 
-@testset "fit (2)" begin
+@testset "train (2)" begin
     rng = MersenneTwister(1)
-    N, G, K0 = 500, 3, 1
+    N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
     for i = 1:N
@@ -162,13 +162,13 @@ end
     end
     data = NormalData(x, y)
     m = NormalDDP(rng, N, G; K0)
-    γb = fit(rng, m, data)
+    γb = train(rng, m, data)
     @test all(mode(γb) .== [true, true, false])
 end
 
-@testset "fit (3)" begin
+@testset "train (3)" begin
     rng = MersenneTwister(1)
-    N, G, K0 = 500, 3, 1
+    N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
     for i = 1:N
@@ -178,13 +178,13 @@ end
     end
     data = NormalData(x, y)
     m = NormalDDP(rng, N, G; K0)
-    γb = fit(rng, m, data)
+    γb = train(rng, m, data)
     @test all(mode(γb) .== [true, false, true])
 end
 
-@testset "fit (4)" begin
+@testset "train (4)" begin
     rng = MersenneTwister(1)
-    N, G, K0 = 500, 3, 1
+    N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
     for i = 1:N
@@ -194,7 +194,7 @@ end
     end
     data = NormalData(x, y)
     m = NormalDDP(rng, N, G; K0)
-    γb = fit(rng, m, data)
+    γb = train(rng, m, data)
     @test all(mode(γb) .== [true, true, true])
 end
 

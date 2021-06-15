@@ -117,7 +117,6 @@ function update_γ!(rng::AbstractRNG, m::NormalDDP, data)
         log_den = log(πγ[sum(γ)])
         for k ∈ A, j ∈ (1)
             log_den += logmglik(m, j, k)
-            # println(logmglik(m, j, k))
         end
 
         # log-odds and new γ[g]

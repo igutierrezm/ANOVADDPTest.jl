@@ -14,14 +14,14 @@ juliaEval('Pkg.add(url = "https://github.com/igutierrezm/ANOVADDPTest.jl")')
 # Una vez instalados, podemos crear wrappers usando la función juliaImport:
 ANOVADDPTest <- juliaImport("ANOVADDPTest")
 
-# La función es fit(), que retorna las cadenas para gamma.
+# La función es train(), que retorna las cadenas para gamma.
 # Veamos un ejemplo:
 
 N <- 1000
 G <- 3
 y <- rnorm(N) # respuestas
 x <- as.integer(1 + 0:(N-1) %% G) # grupos
-res <- ANOVADDPTest$fit(y, x, iter = 2000L)
+res <- ANOVADDPTest$train(y, x, iter = 2000L)
 
 # Una vez las cadenas, podemos traerlas a R y trabajarlas como es usual
 res %>%

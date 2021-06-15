@@ -1,4 +1,5 @@
 using ANOVADDPTest
+using Distributions
 using SpecialFunctions
 using StatsBase: mode
 using Statistics: mean, var

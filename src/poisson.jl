@@ -103,4 +103,36 @@ function logmglik(m::PoissonDDP, j::Int, k::Int)
     )
 end
 
+function update_γ!(rng::AbstractRNG, m::PoissonDDP, data)
+    @extract m : πγ γ
+    A = active_clusters(m)
+
+    # Resample γ[g], given the other γ's
+    for g = 2:length(γ)
+        # log-odds (numerator)
+        γ[g] = 1
+        update_suffstats!(m, data)
+        log_num = log(πγ[sum(γ)])
+        for k ∈ A, j ∈ (1, g)
+            log_num += logmglik(m, j, k)
+        end
+
+        # log-odds (denominator)
+        γ[g] = 0
+        update_suffstats!(m, data)
+        log_den = log(πγ[sum(γ)])
+        for k ∈ A, j ∈ (1)
+            log_den += logmglik(m, j, k)
+        end
+
+        # log-odds and new γ[g]
+        log_odds = log_num - log_den
+        γ[g] = rand(rng) <= 1 / (1 + exp(-log_odds))
+    end
+end
+
+function update_hyperpars!(rng::AbstractRNG, m::PoissonDDP, data)
+    update_γ!(rng, m, data)
+end
+
 # Tõnu Kollo (tonu.kollo@ut.ee) University of Tartu, Tartu, Estonia 

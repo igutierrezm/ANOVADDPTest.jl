@@ -73,112 +73,79 @@ end
     # TODO: Add some tests
 end
 
-# @testset "update! (1)" begin
-#     rng = MersenneTwister(1)
-#     data = NormalData([1, 1], [1.0, 0.0])
-#     N, G, K0, v0, r0, u0, s0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
-#     m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
-#     update!(rng, m, data)
-# end
+@testset "update! (1)" begin
+    N, G, K0 = 2, 1, 1
+    rng = MersenneTwister(1)
+    data = PoissonData([1, 1], [1.0, 0.0])
+    m = PoissonDDP(rng, N, G; K0)
+    update!(rng, m, data)
+end
 
-# @testset "update! (2)" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 3
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     G = length(unique(x))
-#     data = NormalData(x, y)
-#     sb = SpecificBlock(G)
-#     gb = GenericBlock(rng, N)
-#     update!(rng, sb, gb, data)
-# end
+@testset "update! (2)" begin
+    rng = MersenneTwister(1)
+    N, G, K0 = 1000, 3, 1
+    x = rand(rng, 1:G, N)
+    y = rand(rng, Poisson(3), N)
+    data = PoissonData(x, y)
+    m = PoissonDDP(rng, N, G; K0)
+    update!(rng, m, data)
+end
 
-# @testset "final_example" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 1
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     for i = 1:N
-#         if x[i] == 2
-#             y[i] += 10.0
-#         end
-#     end
-#     y .= (y .- mean(y)) ./ √var(y)
-#     G = length(unique(x))
-#     data = NormalData(x, y)
-#     sb = SpecificBlock(G)
-#     gb = GenericBlock(rng, N; K0 = 1)
-#     for t in 1:10
-#         update!(rng, sb, gb, data)
-#         println(sb.γ[:])
-#     end
-# end
+@testset "train (1)" begin
+    rng = MersenneTwister(1)
+    N, G, K0 = 1000, 3, 1
+    x = rand(rng, 1:G, N)
+    y = rand(rng, Poisson(3), N)
+    data = PoissonData(x, y)
+    m = PoissonDDP(rng, N, G; K0)
+    γb = train(rng, m, data)
+    @test all(mode(γb) .== [true, false, false])
+end
 
-# @testset "fit (1)" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 1
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     for i = 1:N
-#         if x[i] == 2
-#             y[i] += 10.0
-#         end
-#     end
-#     y .= (y .- mean(y)) ./ √var(y)
-#     γb = mean(fit(y, x; seed = 1))
-#     @test γb[1] ≈ 1.0
-#     @test γb[2] ≥ 0.85
-#     @test γb[3] ≤ 0.15
-# end
+@testset "train (2)" begin
+    rng = MersenneTwister(1)
+    N, G, K0 = 1000, 3, 1
+    x = rand(rng, 1:G, N)
+    y = rand(rng, Poisson(3), N)
+    for i = 1:N
+        if x[i] == 2
+            y[i] += 10
+        end
+    end
+    data = PoissonData(x, y)
+    m = PoissonDDP(rng, N, G; K0)
+    γb = train(rng, m, data)
+    @test all(mode(γb) .== [true, true, false])
+end
 
-# @testset "fit (2)" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 1
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     for i = 1:N
-#         if x[i] == 3
-#             y[i] += 10.0
-#         end
-#     end
-#     y .= (y .- mean(y)) ./ √var(y)
-#     γb = mean(fit(y, x; seed = 1))
-#     @test γb[1] ≈ 1.0
-#     @test γb[2] ≤ 0.15
-#     @test γb[3] ≥ 0.85
-# end
+@testset "train (3)" begin
+    rng = MersenneTwister(1)
+    N, G, K0 = 1000, 3, 1
+    x = rand(rng, 1:G, N)
+    y = rand(rng, Poisson(3), N)
+    for i = 1:N
+        if x[i] == 3
+            y[i] += 10
+        end
+    end
+    data = PoissonData(x, y)
+    m = PoissonDDP(rng, N, G; K0)
+    γb = train(rng, m, data)
+    @test all(mode(γb) .== [true, false, true])
+end
 
-# @testset "fit (3)" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 1
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     for i = 1:N
-#         if x[i] != 1
-#             y[i] += 10.0
-#         end
-#     end
-#     y .= (y .- mean(y)) ./ √var(y)
-#     γb = mean(fit(y, x; seed = 1))
-#     @test γb[1] ≈ 1.0
-#     @test γb[2] ≥ 0.85
-#     @test γb[3] ≥ 0.85
-# end
-
-# @testset "fit (4)" begin
-#     rng = MersenneTwister(1)
-#     N, F = 1000, 1
-#     y = randn(rng, N)
-#     x = [rand(rng, 1:3, F) for _ in 1:N]
-#     x = denserank(x)
-#     y .= (y .- mean(y)) ./ √var(y)
-#     γb = mean(fit(y, x; seed = 1))
-#     @test γb[1] ≈ 1.0
-#     @test γb[2] ≤ 0.15
-#     @test γb[3] ≤ 0.15
-# end
+@testset "train (4)" begin
+    rng = MersenneTwister(1)
+    N, G, K0 = 1000, 3, 1
+    x = rand(rng, 1:G, N)
+    y = rand(rng, Poisson(3), N)
+    for i = 1:N
+        if x[i] != 1
+            y[i] += 10
+        end
+    end
+    data = PoissonData(x, y)
+    m = PoissonDDP(rng, N, G; K0)
+    γb = train(rng, m, data)
+    @test all(mode(γb) .== [true, true, true])
+end

@@ -78,13 +78,13 @@ function update_suffstats!(m::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
 end
 
 function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
-    d = cluster_labels(m)
-    @extract m : a1 b1 γ
     @extract data : y x
+    @extract m : a1 b1 γ
+    d = cluster_labels(m)
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j] - (d[i] == k) * y[i]
-    b1kj = b1[k][j] - (d[i] == k)
-    if y[i] == 1
+    b1kj = b1[k][j] - (d[i] == k) * (1 - y[i])
+    if y[i]
         return log(a1kj / (a1kj + b1kj))
     else
         return log(b1kj / (a1kj + b1kj))
@@ -93,5 +93,37 @@ end
 
 function logmglik(m::BernoulliDDP, j::Int, k::Int)
     @extract m : a0 b0 a1 b1
-    return logbeta(a0, b0) - logbeta(a1, b1)
+    return logbeta(a1[k][j], b1[k][j]) - logbeta(a0, b0)
+end
+
+function update_γ!(rng::AbstractRNG, m::BernoulliDDP, data)
+    @extract m : πγ γ
+    A = active_clusters(m)
+
+    # Resample γ[g], given the other γ's
+    for g = 2:length(γ)
+        # log-odds (numerator)
+        γ[g] = 1
+        update_suffstats!(m, data)
+        log_num = log(πγ[sum(γ)])
+        for k ∈ A, j ∈ (1, g)
+            log_num += logmglik(m, j, k)
+        end
+
+        # log-odds (denominator)
+        γ[g] = 0
+        update_suffstats!(m, data)
+        log_den = log(πγ[sum(γ)])
+        for k ∈ A, j ∈ (1)
+            log_den += logmglik(m, j, k)
+        end
+
+        # log-odds and new γ[g]
+        log_odds = log_num - log_den
+        γ[g] = rand(rng) <= 1 / (1 + exp(-log_odds))
+    end
+end
+
+function update_hyperpars!(rng::AbstractRNG, m::BernoulliDDP, data)
+    update_γ!(rng, m, data)
 end
