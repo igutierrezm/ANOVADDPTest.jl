@@ -2,6 +2,7 @@ struct BernoulliData
     x::Vector{Int}
     y::Vector{Bool}
 end
+length(data::BernoulliData) = length(data.y)
 
 struct BernoulliDDP <: AbstractDPM
     parent::DPM
@@ -84,6 +85,19 @@ function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j] - (d[i] == k) * y[i]
     b1kj = b1[k][j] - (d[i] == k) * (1 - y[i])
+    if y[i]
+        return log(a1kj / (a1kj + b1kj))
+    else
+        return log(b1kj / (a1kj + b1kj))
+    end
+end
+
+function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
+    @extract data : y x
+    @extract m : a1 b1 γ
+    j = iszero(γ[x[i]]) ? 1 : x[i]
+    a1kj = a1[k][j]
+    b1kj = b1[k][j]
     if y[i]
         return log(a1kj / (a1kj + b1kj))
     else

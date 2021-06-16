@@ -2,6 +2,7 @@ struct PoissonData
     x::Vector{Int}
     y::Vector{Int}
 end
+length(data::PoissonData) = length(data.y)
 
 struct PoissonDDP <: AbstractDPM
     parent::DPM
@@ -91,6 +92,15 @@ function logpredlik(m::PoissonDDP, data, i::Int, k::Int)
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j] - (d[i] == k) * y[i]
     b1kj = b1[k][j] - (d[i] == k)
+    return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
+end
+
+function logpredlik(m::PoissonDDP, train, predict, i::Int, k::Int)
+    @extract m : a1 b1 γ
+    @extract predict : y x
+    j = iszero(γ[x[i]]) ? 1 : x[i]
+    a1kj = a1[k][j]
+    b1kj = b1[k][j]
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
 end
 

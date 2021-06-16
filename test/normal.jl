@@ -144,9 +144,12 @@ end
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
-    data = NormalData(x, y)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    data = NormalData(x, y)
+    predict = 
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+        x -> NormalData(x...)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, false, false])
 end
 
@@ -157,12 +160,15 @@ end
     y = randn(rng, N)
     for i = 1:N
         if x[i] == 2
-            y[i] += 10.0
+            y[i] += 0.5
         end
     end
     data = NormalData(x, y)
+    predict = 
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+        x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, true, false])
 end
 
@@ -173,12 +179,15 @@ end
     y = randn(rng, N)
     for i = 1:N
         if x[i] == 3
-            y[i] += 10.0
+            y[i] += 0.5
         end
     end
     data = NormalData(x, y)
+    predict = 
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+        x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, false, true])
 end
 
@@ -189,12 +198,15 @@ end
     y = randn(rng, N)
     for i = 1:N
         if x[i] != 1
-            y[i] += 10.0
+            y[i] += 0.5
         end
     end
     data = NormalData(x, y)
+    predict = 
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+        x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, true, true])
 end
 

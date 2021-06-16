@@ -2,6 +2,7 @@ struct NormalData
     x::Vector{Int}
     y::Vector{Float64}
 end
+length(data::NormalData) = length(data.y)
 
 struct NormalDDP <: AbstractDPM
     parent::DPM
@@ -156,6 +157,34 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
         ū1 = (r̄0 * ū0 + yi) / r̄1
         s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2
     end
+
+    if iszero(r̄0)
+        return - 0.5v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
+    else
+        return (
+            0.5v̄0 * log(s̄0) -
+            0.5v̄1 * log(s̄1) +
+            loggamma(v̄1 / 2) -
+            loggamma(v̄0 / 2) +
+            0.5 * log(r̄0 / r̄1) -
+            0.5 * log(π)
+        )        
+    end
+end
+
+function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
+    @extract m : v1 r1 u1 s1 γ
+    @extract predict : y x
+    yi = y[i]
+    zi = iszero(γ[x[i]]) ? 1 : x[i]
+    v̄0 = v1[k][zi]
+    r̄0 = r1[k][zi]
+    ū0 = u1[k][zi]
+    s̄0 = s1[k][zi]
+    v̄1 = v̄0 + 1
+    r̄1 = r̄0 + 1
+    ū1 = (r̄0 * ū0 + yi) / r̄1
+    s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2
 
     if iszero(r̄0)
         return - 0.5v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)

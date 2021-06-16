@@ -94,10 +94,13 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Bernoulli(0.5), N)
+    y = rand(rng, Bernoulli(0.25), N)
     data = BernoulliData(x, y)
+    predict = 
+        expandgrid(1:G, 0:1) |> 
+        x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     println(mode(γb))
     @test all(mode(γb) .== [true, false, false])
 end
@@ -106,15 +109,18 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Bernoulli(0.5), N)
+    y = rand(rng, Bernoulli(0.25), N)
     for i = 1:N
         if x[i] == 2
-            y[i] = rand(rng, Bernoulli(0.9))
+            y[i] = rand(rng, Bernoulli(0.75))
         end
     end
     data = BernoulliData(x, y)
+    predict = 
+        expandgrid(1:G, 0:1) |> 
+        x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     println(mode(γb))
     @test all(mode(γb) .== [true, true, false])
 end
@@ -123,15 +129,18 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Bernoulli(0.5), N)
+    y = rand(rng, Bernoulli(0.25), N)
     for i = 1:N
         if x[i] == 3
-            y[i] = rand(rng, Bernoulli(0.9))
+            y[i] = rand(rng, Bernoulli(0.75))
         end
     end
     data = BernoulliData(x, y)
+    predict = 
+        expandgrid(1:G, 0:1) |> 
+        x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     println(mode(γb))
     @test all(mode(γb) .== [true, false, true])
 end
@@ -140,15 +149,18 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Bernoulli(0.5), N)
+    y = rand(rng, Bernoulli(0.25), N)
     for i = 1:N
         if x[i] != 1
-            y[i] = rand(rng, Bernoulli(0.9))
+            y[i] = rand(rng, Bernoulli(0.75))
         end
     end
     data = BernoulliData(x, y)
+    predict = 
+        expandgrid(1:G, 0:1) |> 
+        x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, true, true])
 end
 

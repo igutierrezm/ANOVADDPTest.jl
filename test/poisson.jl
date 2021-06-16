@@ -85,7 +85,7 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Poisson(3), N)
+    y = rand(rng, Poisson(2), N)
     data = PoissonData(x, y)
     m = PoissonDDP(rng, N, G; K0)
     update!(rng, m, data)
@@ -95,10 +95,13 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Poisson(3), N)
+    y = rand(rng, Poisson(2), N)
     data = PoissonData(x, y)
+    predict = 
+        expandgrid(1:G, 1:8) |> 
+        x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, false, false])
 end
 
@@ -106,15 +109,18 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Poisson(3), N)
+    y = rand(rng, Poisson(2), N)
     for i = 1:N
         if x[i] == 2
-            y[i] += 10
+            y[i] += 2
         end
     end
     data = PoissonData(x, y)
+    predict = 
+        expandgrid(1:G, 1:8) |> 
+        x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, true, false])
 end
 
@@ -122,15 +128,18 @@ end
     rng = MersenneTwister(1)
     N, G, K0 = 1000, 3, 1
     x = rand(rng, 1:G, N)
-    y = rand(rng, Poisson(3), N)
+    y = rand(rng, Poisson(2), N)
     for i = 1:N
         if x[i] == 3
-            y[i] += 10
+            y[i] += 2
         end
     end
     data = PoissonData(x, y)
+    predict = 
+        expandgrid(1:G, 1:8) |> 
+        x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, false, true])
 end
 
@@ -141,11 +150,14 @@ end
     y = rand(rng, Poisson(3), N)
     for i = 1:N
         if x[i] != 1
-            y[i] += 10
+            y[i] += 2
         end
     end
     data = PoissonData(x, y)
+    predict = 
+        expandgrid(1:G, 1:8) |> 
+        x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
-    γb = train(rng, m, data)
+    γb = train(rng, m, data, predict)
     @test all(mode(γb) .== [true, true, true])
 end
