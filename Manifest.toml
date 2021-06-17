@@ -11,9 +11,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "8b31cc69cbc38c5c826aaa1c890c694be3622d99"
+git-tree-sha1 = "dbc9aae1227cfddaa9d2552f3ecba5b641f6cce9"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.10.3"
+version = "0.10.5"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -58,9 +58,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "013020ec9a5cdf1dd454eba3704dbffa69d3047e"
+git-tree-sha1 = "62e1ac52e9adf4234285cd88c94954924aa3f9ef"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.3"
+version = "0.25.5"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -161,9 +161,9 @@ version = "1.4.1"
 
 [[PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "f82a0e71f222199de8e9eb9a09977bd0767d52a0"
+git-tree-sha1 = "4dd403333bcf0909341cfe57ec115152f937d7d8"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
-version = "0.11.0"
+version = "0.11.1"
 
 [[Parameters]]
 deps = ["OrderedCollections", "UnPack"]
