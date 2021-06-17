@@ -1,12 +1,11 @@
-using CategoricalArrays
+# using CategoricalArrays
 using StatsPlots
 using ANOVADDPTest
 using DataFrames
 using Statistics
 using Random
-using Plots
 gr()
-include("test/utils.jl")
+include("examples/utils.jl")
 
 #####
 ##### Example 1
@@ -24,7 +23,7 @@ predict =
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
@@ -59,11 +58,10 @@ m = NormalDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
-
 
 @df df scatter(
     :y,
@@ -95,7 +93,7 @@ m = NormalDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
@@ -130,7 +128,7 @@ m = NormalDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )

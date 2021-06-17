@@ -7,7 +7,7 @@ using Random
 using Distributions
 using Plots
 gr()
-include("test/utils.jl")
+include("utils.jl")
 
 #####
 ##### Example 1
