@@ -93,12 +93,12 @@ function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
 end
 
 function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
-    @extract train : y x
+    @extract predict : y x
     @extract m : a1 b1 γ
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j]
     b1kj = b1[k][j]
-    if y[i]
+    if y[i] == 1
         return log(a1kj / (a1kj + b1kj))
     else
         return log(b1kj / (a1kj + b1kj))
