@@ -1,4 +1,3 @@
-# using CategoricalArrays
 using StatsPlots
 using ANOVADDPTest
 using DataFrames

@@ -1,13 +1,11 @@
-using CategoricalArrays
 using StatsPlots
 using ANOVADDPTest
 using DataFrames
 using Statistics
 using Random
 using Distributions
-using Plots
 gr()
-include("utils.jl")
+include("examples/utils.jl")
 
 #####
 ##### Example 1
@@ -16,18 +14,16 @@ include("utils.jl")
 rng = MersenneTwister(1)
 N, G, K0 = 2000, 3, 1
 x = rand(rng, 1:G, N)
-y = rand(rng, Poisson(4), N)
-data = PoissonData(x, y)
+y = rand(rng, Bernoulli(0.25), N)
+data = BernoulliData(x, y)
 predict = 
-    expandgrid(1:G, 0:8) |> 
-    x -> PoissonData(x...)
-m = PoissonDDP(rng, N, G; K0)
+    expandgrid(1:G, 0:1) |> 
+    x -> BernoulliData(x...)
+m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
-histogram(y)
-
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
@@ -48,21 +44,21 @@ df = DataFrame(
 rng = MersenneTwister(1)
 N, G, K0 = 2000, 3, 1
 x = rand(rng, 1:G, N)
-y = rand(rng, Poisson(4), N)
+y = rand(rng, Bernoulli(0.25), N)
 for i = 1:N
     if x[i] == 2
-        y[i] = rand(rng, Poisson(1))
+        y[i] = rand(rng, Bernoulli(0.75))
     end
 end
-data = PoissonData(x, y)
+data = BernoulliData(x, y)
 predict = 
-    expandgrid(1:G, 0:8) |> 
-    x -> PoissonData(x...)
-m = PoissonDDP(rng, N, G; K0)
+    expandgrid(1:G, 0:1) |> 
+    x -> BernoulliData(x...)
+m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
@@ -83,21 +79,21 @@ df = DataFrame(
 rng = MersenneTwister(1)
 N, G, K0 = 1000, 3, 1
 x = rand(rng, 1:G, N)
-y = rand(rng, Poisson(4), N)
+y = rand(rng, Bernoulli(0.25), N)
 for i = 1:N
     if x[i] == 3
-        y[i] = rand(rng, Poisson(1))
+        y[i] = rand(rng, Bernoulli(0.75))
     end
 end
-data = PoissonData(x, y)
+data = BernoulliData(x, y)
 predict = 
-    expandgrid(1:G, 0:8) |> 
-    x -> PoissonData(x...)
-m = PoissonDDP(rng, N, G; K0)
+    expandgrid(1:G, 0:1) |> 
+    x -> BernoulliData(x...)
+m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
@@ -118,21 +114,21 @@ df = DataFrame(
 rng = MersenneTwister(1)
 N, G, K0 = 1000, 3, 1
 x = rand(rng, 1:G, N)
-y = rand(rng, Poisson(4), N)
+y = rand(rng, Bernoulli(0.25), N)
 for i = 1:N
     if x[i] != 1
-        y[i] = rand(rng, Poisson(1))
+        y[i] = rand(rng, Bernoulli(0.75))
     end
 end
-data = PoissonData(x, y)
+data = BernoulliData(x, y)
 predict = 
-    expandgrid(1:G, 0:8) |> 
-    x -> PoissonData(x...)
-m = PoissonDDP(rng, N, G; K0)
+    expandgrid(1:G, 0:1) |> 
+    x -> BernoulliData(x...)
+m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = CategoricalArray(predict.x), 
+    x = predict.x, 
     y = predict.y, 
     f = mean(chain.f)
 )
