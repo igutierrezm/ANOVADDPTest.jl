@@ -1,9 +1,10 @@
-# FROM julia:1.6.1
-# RUN apt-get -y update
-# RUN apt-get -y install git
+FROM julia:1.6.1
+RUN apt-get -y update
+RUN apt-get -y install git
+RUN apt-get -y install r-base
 
 # Build
-# docker build -t anovaddptest .
+# docker build -t dpmneal3 .
 
 # Run
-# sudo sudo docker run --rm -di anovaddptest
+# sudo docker run --rm -di dpmneal3
