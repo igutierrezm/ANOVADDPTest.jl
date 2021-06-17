@@ -19,14 +19,17 @@ struct DPM_MCMC_Chain
     f::Vector{Vector{Float64}}
 end
 
-function logpredlik(m::AbstractDPM, train, predict, i::Int)
+function predlik(m::AbstractDPM, train, predict, i::Int)
     k̄ = first(passive_clusters(m))
     A = active_clusters(m)
+    n = cluster_sizes(m)
+    N = length(train)
+    α = dp_mass(m)
     ans = 0.0
     for k in A
-        ans += logpredlik(m, train, predict, i, k)
+        ans += exp(logpredlik(m, train, predict, i, k)) * n[k] / (N + α)
     end
-    ans += logpredlik(m, train, predict, i, k̄)
+    ans += exp(logpredlik(m, train, predict, i, k̄)) * α / (N + α)
     return(ans)
 end
 
@@ -39,7 +42,7 @@ function train(rng, m::AbstractDPM, train, predict; iter = 2000, warmup = iter �
             t0 = (t - warmup) ÷ thin
             γchain[t0] = m.γ[:]
             for i = 1:length(predict)
-                fchain[t0][i] = logpredlik(m, train, predict, i)
+                fchain[t0][i] = predlik(m, train, predict, i)
             end
         end
     end
