@@ -149,8 +149,8 @@ end
     predict = 
         expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
         x -> NormalData(x...)
-    γb = train(rng, m, data, predict)
-    @test all(mode(γb) .== [true, false, false])
+    chain = train(rng, m, data, predict)
+    @test all(mode(chain.γ) .== [true, false, false])
 end
 
 @testset "train (2)" begin
@@ -168,8 +168,8 @@ end
         expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data, predict)
-    @test all(mode(γb) .== [true, true, false])
+    chain = train(rng, m, data, predict)
+    @test all(mode(chain.γ) .== [true, true, false])
 end
 
 @testset "train (3)" begin
@@ -187,8 +187,8 @@ end
         expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data, predict)
-    @test all(mode(γb) .== [true, false, true])
+    chain = train(rng, m, data, predict)
+    @test all(mode(chain.γ) .== [true, false, true])
 end
 
 @testset "train (4)" begin
@@ -206,8 +206,8 @@ end
         expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
-    γb = train(rng, m, data, predict)
-    @test all(mode(γb) .== [true, true, true])
+    chain = train(rng, m, data, predict)
+    @test all(mode(chain.γ) .== [true, true, true])
 end
 
 # Note: 

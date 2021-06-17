@@ -93,7 +93,7 @@ function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
 end
 
 function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
-    @extract data : y x
+    @extract train : y x
     @extract m : a1 b1 γ
     j = iszero(γ[x[i]]) ? 1 : x[i]
     a1kj = a1[k][j]
