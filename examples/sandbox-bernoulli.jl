@@ -1,3 +1,4 @@
+using Revise
 using StatsPlots
 using ANOVADDPTest
 using DataFrames
@@ -16,15 +17,15 @@ N, G, K0 = 2000, 3, 1
 x = rand(rng, 1:G, N)
 y = rand(rng, Bernoulli(0.25), N)
 data = BernoulliData(x, y)
-predict = 
-    expandgrid(1:G, 0:1) |> 
+predict =
+    expandgrid(1:G, 0:1) |>
     x -> BernoulliData(x...)
 m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = predict.x, 
-    y = predict.y, 
+    x = predict.x,
+    y = predict.y,
     f = mean(chain.f)
 )
 
@@ -51,15 +52,15 @@ for i = 1:N
     end
 end
 data = BernoulliData(x, y)
-predict = 
-    expandgrid(1:G, 0:1) |> 
+predict =
+    expandgrid(1:G, 0:1) |>
     x -> BernoulliData(x...)
 m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = predict.x, 
-    y = predict.y, 
+    x = predict.x,
+    y = predict.y,
     f = mean(chain.f)
 )
 
@@ -86,15 +87,15 @@ for i = 1:N
     end
 end
 data = BernoulliData(x, y)
-predict = 
-    expandgrid(1:G, 0:1) |> 
+predict =
+    expandgrid(1:G, 0:1) |>
     x -> BernoulliData(x...)
 m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = predict.x, 
-    y = predict.y, 
+    x = predict.x,
+    y = predict.y,
     f = mean(chain.f)
 )
 
@@ -121,15 +122,15 @@ for i = 1:N
     end
 end
 data = BernoulliData(x, y)
-predict = 
-    expandgrid(1:G, 0:1) |> 
+predict =
+    expandgrid(1:G, 0:1) |>
     x -> BernoulliData(x...)
 m = BernoulliDDP(rng, N, G; K0)
 chain = train(rng, m, data, predict)
 
 df = DataFrame(
-    x = predict.x, 
-    y = predict.y, 
+    x = predict.x,
+    y = predict.y,
     f = mean(chain.f)
 )
 

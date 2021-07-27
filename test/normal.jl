@@ -11,7 +11,7 @@
     @test m.r1 == [3 * ones(G)]
     @test m.u1 == [3 * ones(G)]
     @test m.s1 == [9 * ones(G)]
-    @test m.γ  == ones(Bool, G)
+    @test m.gamma  == ones(Bool, G)
 end
 
 @testset "NormalDDP inherited accessors" begin
@@ -146,11 +146,11 @@ end
     y = randn(rng, N)
     m = NormalDDP(rng, N, G; K0)
     data = NormalData(x, y)
-    predict = 
-        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+    predict =
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |>
         x -> NormalData(x...)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, false, false])
+    @test all(mode(chain.gamma) .== [true, false, false])
 end
 
 @testset "train (2)" begin
@@ -164,12 +164,12 @@ end
         end
     end
     data = NormalData(x, y)
-    predict = 
-        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+    predict =
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |>
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, true, false])
+    @test all(mode(chain.gamma) .== [true, true, false])
 end
 
 @testset "train (3)" begin
@@ -183,12 +183,12 @@ end
         end
     end
     data = NormalData(x, y)
-    predict = 
-        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+    predict =
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |>
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, false, true])
+    @test all(mode(chain.gamma) .== [true, false, true])
 end
 
 @testset "train (4)" begin
@@ -202,14 +202,14 @@ end
         end
     end
     data = NormalData(x, y)
-    predict = 
-        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |> 
+    predict =
+        expandgrid(1:G, range(-2.0, stop = 2.0, length = 50)) |>
         x -> NormalData(x...)
     m = NormalDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, true, true])
+    @test all(mode(chain.gamma) .== [true, true, true])
 end
 
-# Note: 
-# Remember that you can use denserank(x) for converting 
+# Note:
+# Remember that you can use denserank(x) for converting
 # vector codes to numeric codes

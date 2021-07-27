@@ -7,7 +7,7 @@
     @test m.b0 == 4
     @test m.a1 == [2 * ones(G)]
     @test m.b1 == [4 * ones(G)]
-    @test m.γ  == ones(Bool, G)
+    @test m.gamma  == ones(Bool, G)
 end
 
 @testset "PoissonDDP inherited accessors" begin
@@ -97,12 +97,12 @@ end
     x = rand(rng, 1:G, N)
     y = rand(rng, Poisson(2), N)
     data = PoissonData(x, y)
-    predict = 
-        expandgrid(1:G, 1:8) |> 
+    predict =
+        expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, false, false])
+    @test all(mode(chain.gamma) .== [true, false, false])
 end
 
 @testset "train (2)" begin
@@ -116,12 +116,12 @@ end
         end
     end
     data = PoissonData(x, y)
-    predict = 
-        expandgrid(1:G, 1:8) |> 
+    predict =
+        expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, true, false])
+    @test all(mode(chain.gamma) .== [true, true, false])
 end
 
 @testset "train (3)" begin
@@ -135,12 +135,12 @@ end
         end
     end
     data = PoissonData(x, y)
-    predict = 
-        expandgrid(1:G, 1:8) |> 
+    predict =
+        expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, false, true])
+    @test all(mode(chain.gamma) .== [true, false, true])
 end
 
 @testset "train (4)" begin
@@ -154,10 +154,10 @@ end
         end
     end
     data = PoissonData(x, y)
-    predict = 
-        expandgrid(1:G, 1:8) |> 
+    predict =
+        expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
     m = PoissonDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
-    @test all(mode(chain.γ) .== [true, true, true])
+    @test all(mode(chain.gamma) .== [true, true, true])
 end

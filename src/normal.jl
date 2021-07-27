@@ -1,6 +1,8 @@
-struct NormalData
-    x::Vector{Int}
+Base.@kwdef struct NormalData
+    X::Matrix{Int}
     y::Vector{Float64}
+    x::Vector{Int} = denserank([X[i, :] for i in 1:size(X, 1)])
+    Xunique = sort([X[i, :] for i in 1:size(X, 1)])
 end
 length(data::NormalData) = length(data.y)
 
@@ -14,19 +16,19 @@ struct NormalDDP <: AbstractDPM
     r1::Vector{Vector{Float64}}
     u1::Vector{Vector{Float64}}
     s1::Vector{Vector{Float64}}
-    πγ::Vector{Float64}
-    γ::Vector{Bool}
+    πgamma::Vector{Float64}
+    gamma::Vector{Bool}
     G::Int
     function NormalDDP(
-            rng::AbstractRNG, 
-            N::Int, 
-            G::Int; 
-            K0::Int = 5, 
+            rng::AbstractRNG,
+            N::Int,
+            G::Int;
+            K0::Int = 5,
             a0::Float64 = 2.0,
             b0::Float64 = 4.0,
-            v0::Float64 = 2.0, 
-            r0::Float64 = 1.0, 
-            u0::Float64 = 0.0, 
+            v0::Float64 = 2.0,
+            r0::Float64 = 1.0,
+            u0::Float64 = 0.0,
             s0::Float64 = 1.0
         )
         parent = DPM(rng, N; K0, a0, b0)
@@ -34,9 +36,9 @@ struct NormalDDP <: AbstractDPM
         r1 = [r0 * ones(G)]
         u1 = [u0 * ones(G)]
         s1 = [s0 * ones(G)]
-        πγ = ones(G) / G
-        γ = ones(Bool, G)
-        new(parent, v0, r0, u0, s0, v1, r1, u1, s1, πγ, γ, G)
+        πgamma = ones(G) / G
+        gamma = ones(Bool, G)
+        new(parent, v0, r0, u0, s0, v1, r1, u1, s1, πgamma, gamma, G)
     end
 end
 
@@ -53,7 +55,7 @@ function add_cluster!(m::NormalDDP)
 end
 
 function update_suffstats!(m::NormalDDP, data)
-    @extract m : v0 r0 u0 s0 v1 r1 u1 s1 γ
+    @extract m : v0 r0 u0 s0 v1 r1 u1 s1 gamma
     @extract data : y x
     d = cluster_labels(m)
     while length(v1) < cluster_capacity(m)
@@ -66,7 +68,7 @@ function update_suffstats!(m::NormalDDP, data)
         s1[k] .= s0
     end
     for i = 1:length(y)
-        zi = iszero(γ[x[i]]) ? 1 : x[i]
+        zi = iszero(gamma[x[i]]) ? 1 : x[i]
         di = d[i]
         v1[di][zi] += 1
         rm = r1[di][zi] += 1
@@ -77,11 +79,11 @@ end
 
 function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : v1 r1 u1 s1 γ
+    @extract m : v1 r1 u1 s1 gamma
     while length(v1) < cluster_capacity(m)
         add_cluster!(m)
     end
-    zi = iszero(γ[x[i]]) ? 1 : x[i]
+    zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group di/k2
     v1[k2][zi] += 1
@@ -98,45 +100,45 @@ function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
     r1[k1][zi] -= 1
 end
 
-function update_γ!(rng::AbstractRNG, m::NormalDDP, data)
-    @extract m : πγ γ
+function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
+    @extract m : πgamma gamma
     A = active_clusters(m)
 
-    # Resample γ[g], given the other γ's
-    for g = 2:length(γ)
+    # Resample gamma[g], given the other gamma's
+    for g = 2:length(gamma)
         # log-odds (numerator)
-        γ[g] = 1
+        gamma[g] = 1
         update_suffstats!(m, data)
-        log_num = log(πγ[sum(γ)])
+        log_num = log(πgamma[sum(gamma)])
         for k ∈ A, j ∈ (1, g)
             log_num += logmglik(m, j, k)
         end
 
         # log-odds (denominator)
-        γ[g] = 0
+        gamma[g] = 0
         update_suffstats!(m, data)
-        log_den = log(πγ[sum(γ)])
+        log_den = log(πgamma[sum(gamma)])
         for k ∈ A, j ∈ (1)
             log_den += logmglik(m, j, k)
         end
 
-        # log-odds and new γ[g]
+        # log-odds and new gamma[g]
         log_odds = log_num - log_den
-        γ[g] = rand(rng) <= 1 / (1 + exp(-log_odds))
+        gamma[g] = rand(rng) <= 1 / (1 + exp(-log_odds))
     end
 end
 
 function update_hyperpars!(rng::AbstractRNG, m::NormalDDP, data)
-    update_γ!(rng, m, data)
+    update_gamma!(rng, m, data)
 end
 
 function logpredlik(m::NormalDDP, data, i::Int, k::Int)
-    @extract m : v1 r1 u1 s1 γ
+    @extract m : v1 r1 u1 s1 gamma
     @extract data : y x
     d = cluster_labels(m)
     yi = y[i]
     di = d[i]
-    zi = iszero(γ[x[i]]) ? 1 : x[i]
+    zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     if di == k
         v̄1 = v1[k][zi]
@@ -168,15 +170,15 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
             loggamma(v̄0 / 2) +
             0.5 * log(r̄0 / r̄1) -
             0.5 * log(π)
-        )        
+        )
     end
 end
 
 function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
-    @extract m : v1 r1 u1 s1 γ
+    @extract m : v1 r1 u1 s1 gamma
     @extract predict : y x
     yi = y[i]
-    zi = iszero(γ[x[i]]) ? 1 : x[i]
+    zi = iszero(gamma[x[i]]) ? 1 : x[i]
     v̄0 = v1[k][zi]
     r̄0 = r1[k][zi]
     ū0 = u1[k][zi]
@@ -196,7 +198,7 @@ function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
             loggamma(v̄0 / 2) +
             0.5 * log(r̄0 / r̄1) -
             0.5 * log(π)
-        )        
+        )
     end
 end
 
