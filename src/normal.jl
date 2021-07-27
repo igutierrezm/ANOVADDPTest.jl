@@ -2,7 +2,7 @@ Base.@kwdef struct NormalData
     X::Matrix{Int}
     y::Vector{Float64}
     x::Vector{Int} = denserank([X[i, :] for i in 1:size(X, 1)])
-    Xunique = sort([X[i, :] for i in 1:size(X, 1)])
+    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
 end
 length(data::NormalData) = length(data.y)
 
