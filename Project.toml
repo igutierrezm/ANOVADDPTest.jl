@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 DPMNeal3 = "af0b21b6-ea01-48a9-a6c6-8ff6351a99f2"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 ExtractMacro = "f86d3d12-fd5b-522c-99e9-61577282a1e9"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
