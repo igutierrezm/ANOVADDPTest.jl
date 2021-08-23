@@ -24,15 +24,15 @@ struct PoissonDDP <: AbstractDPM
     gamma::Vector{Bool}
     G::Int
     function PoissonDDP(
-            rng::AbstractRNG,
-            N::Int,
-            G::Int;
-            K0::Int = 1,
-            αa0::Float64 = 2.0,
-            αb0::Float64 = 4.0,
-            a0::Float64 = 2.0,
-            b0::Float64 = 4.0
-        )
+        rng::AbstractRNG,
+        N::Int,
+        G::Int;
+        K0::Int = 1,
+        αa0::Float64 = 2.0,
+        αb0::Float64 = 4.0,
+        a0::Float64 = 2.0,
+        b0::Float64 = 4.0
+    )
         parent = DPM(rng, N; K0, a0 = αa0, b0 = αb0)
         a1 = [a0 * ones(Int, G)]
         b1 = [b0 * ones(Int, G)]

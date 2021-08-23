@@ -27,17 +27,17 @@ struct NormalDDP <: AbstractDPM
     gamma::Vector{Bool}
     G::Int
     function NormalDDP(
-            rng::AbstractRNG,
-            N::Int,
-            G::Int;
-            K0::Int = 5,
-            a0::Float64 = 2.0,
-            b0::Float64 = 4.0,
-            v0::Float64 = 2.0,
-            r0::Float64 = 1.0,
-            u0::Float64 = 0.0,
-            s0::Float64 = 1.0
-        )
+        rng::AbstractRNG,
+        N::Int,
+        G::Int;
+        K0::Int = 5,
+        a0::Float64 = 2.0,
+        b0::Float64 = 4.0,
+        v0::Float64 = 2.0,
+        r0::Float64 = 1.0,
+        u0::Float64 = 0.0,
+        s0::Float64 = 1.0
+    )
         parent = DPM(rng, N; K0, a0, b0)
         v1 = [v0 * ones(G)]
         r1 = [r0 * ones(G)]
@@ -75,7 +75,7 @@ function update_suffstats!(m::NormalDDP, data)
         s1[k] .= s0
     end
     for i = 1:length(y)
-        zi = iszero(gamma[x[i]]) ? 1 : x[i]
+        zi = gamma[x[i]] ? x[i] : 1
         di = d[i]
         v1[di][zi] += 1
         rm = r1[di][zi] += 1
