@@ -3,23 +3,15 @@ struct BernoulliData
     x::Vector{Int}
     y::Vector{Bool}
     Xunique::Vector{Vector{Int}}
+    function BernoulliData(x::Vector{Int}, y::Vector{Bool})
+        X = x[:, :]
+        Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
+        new(X, x, y, Xunique)
+    end
 end
 
-function BernoulliData(x::Vector{Int}, y::Vector{Bool})
-    X = x[:, :]
-    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
-    BernoulliData(X, x, y, Xunique)
-end
-
-function BernoulliData(X::Matrix{Int}, y::Vector{Bool})
-    x = denserank([X[i, :] for i in 1:size(X, 1)])
-    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
-    BernoulliData(X, x, y, Xunique)
-end
-
-function length(data::BernoulliData)
-    length(data.y)
-end
+BernoulliData(x::Vector{Int}, y::Vector{Bool}) = BernoulliData(x[:, :], y)
+length(data::BernoulliData) = length(data.y)
 
 struct BernoulliDDP <: AbstractDPM
     parent::DPM

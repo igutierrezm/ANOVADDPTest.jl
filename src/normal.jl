@@ -3,23 +3,15 @@ struct NormalData
     x::Vector{Int}
     y::Vector{Float64}
     Xunique::Vector{Vector{Int}}
+    function NormalData(X::Matrix{Int}, y::Vector{Float64})
+        x = denserank([X[i, :] for i in 1:size(X, 1)])
+        Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
+        new(X, x, y, Xunique)
+    end
 end
 
-function NormalData(x::Vector{Int}, y::Vector{Float64})
-    X = x[:, :]
-    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
-    NormalData(X, x, y, Xunique)
-end
-
-function NormalData(X::Matrix{Int}, y::Vector{Float64})
-    x = denserank([X[i, :] for i in 1:size(X, 1)])
-    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
-    NormalData(X, x, y, Xunique)
-end
-
-function length(data::NormalData)
-    length(data.y)
-end
+NormalData(x::Vector{Int}, y::Vector{Float64}) = NormalData(x[:, :], y)
+length(data::NormalData) = length(data.y)
 
 struct NormalDDP <: AbstractDPM
     parent::DPM
