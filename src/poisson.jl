@@ -1,8 +1,25 @@
 struct PoissonData
+    X::Matrix{Int}
     x::Vector{Int}
     y::Vector{Int}
+    Xunique::Vector{Vector{Int}}
 end
-length(data::PoissonData) = length(data.y)
+
+function PoissonData(x::Vector{Int}, y::Vector{Int})
+    X = x[:, :]
+    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
+    PoissonData(X, x, y, Xunique)
+end
+
+function PoissonData(X::Matrix{Int}, y::Vector{Int})
+    x = denserank([X[i, :] for i in 1:size(X, 1)])
+    Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
+    PoissonData(X, x, y, Xunique)
+end
+
+function length(data::PoissonData)
+    length(data.y)
+end
 
 struct PoissonDDP <: AbstractDPM
     parent::DPM

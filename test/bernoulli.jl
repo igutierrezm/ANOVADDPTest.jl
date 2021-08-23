@@ -36,7 +36,7 @@ end
 @testset "update_suffstats! (1)" begin
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
-    data = BernoulliData([1], [1])
+    data = BernoulliData([1], [true])
     m = BernoulliDDP(rng, N, G; K0)
     ANOVADDPTest.update_suffstats!(m, data)
     # TODO: Add tests
@@ -45,7 +45,7 @@ end
 @testset "update_suffstats! (2)" begin
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
-    data = BernoulliData([1], [1])
+    data = BernoulliData([1], [true])
     m = BernoulliDDP(rng, N, G; K0)
     ANOVADDPTest.update_suffstats!(m, data)
     ANOVADDPTest.update_suffstats!(m, data, 1, 1, 2)
@@ -55,7 +55,7 @@ end
 @testset "logpredlik (empty clusters)" begin
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
-    data = BernoulliData([1], [1])
+    data = BernoulliData([1], [true])
     m = BernoulliDDP(rng, N, G; K0)
     ANOVADDPTest.update_suffstats!(m, data)
     ANOVADDPTest.logpredlik(m, data, 1, first(passive_clusters(m)))
@@ -65,7 +65,7 @@ end
 @testset "logpredlik (non-empty clusters)" begin
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
-    data = BernoulliData([1, 1], [1, 0])
+    data = BernoulliData([1, 1], [true, false])
     m = BernoulliDDP(rng, N, G; K0)
     ANOVADDPTest.update_suffstats!(m, data)
     ANOVADDPTest.logpredlik(m, data, 2, 1)
@@ -75,7 +75,7 @@ end
 @testset "update! (1)" begin
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
-    data = BernoulliData([1, 1], [1, 0])
+    data = BernoulliData([1, 1], [true, true])
     m = BernoulliDDP(rng, N, G; K0)
     update!(rng, m, data)
 end
@@ -97,7 +97,7 @@ end
     y = rand(rng, Bernoulli(0.25), N)
     data = BernoulliData(x, y)
     predict =
-        expandgrid(1:G, 0:1) |>
+        expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
@@ -116,7 +116,7 @@ end
     end
     data = BernoulliData(x, y)
     predict =
-        expandgrid(1:G, 0:1) |>
+        expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
@@ -135,7 +135,7 @@ end
     end
     data = BernoulliData(x, y)
     predict =
-        expandgrid(1:G, 0:1) |>
+        expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)
@@ -154,7 +154,7 @@ end
     end
     data = BernoulliData(x, y)
     predict =
-        expandgrid(1:G, 0:1) |>
+        expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
     m = BernoulliDDP(rng, N, G; K0)
     chain = train(rng, m, data, predict)

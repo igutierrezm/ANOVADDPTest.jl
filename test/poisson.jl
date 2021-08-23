@@ -76,7 +76,7 @@ end
 @testset "update! (1)" begin
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
-    data = PoissonData([1, 1], [1.0, 0.0])
+    data = PoissonData([1, 1], [1, 0])
     m = PoissonDDP(rng, N, G; K0)
     update!(rng, m, data)
 end
