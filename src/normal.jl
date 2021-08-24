@@ -15,7 +15,7 @@ length(data::NormalData) = length(data.y)
 
 struct NormalDDP <: AbstractDPM
     parent::DPM
-    v0::Float64
+    v0::Float64 # TODO: Replace theta hyperparameters by thetaprior::NormalInverseGamma{Float64}
     r0::Float64
     u0::Float64
     s0::Float64
@@ -31,9 +31,9 @@ struct NormalDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 5,
-        a0::Float64 = 2.0,
+        a0::Float64 = 2.0, # TODO: Replace a0, b0 by alphaprior = Gamma(2.0, 0.25) (I must update this in DPMNeal3.jl first)
         b0::Float64 = 4.0,
-        v0::Float64 = 2.0,
+        v0::Float64 = 2.0, # TODO: Replace (v0, r0, u0, s0) by NormalInverseGamma(u0, 1 / r0, v0, s0)
         r0::Float64 = 1.0,
         u0::Float64 = 0.0,
         s0::Float64 = 1.0,
