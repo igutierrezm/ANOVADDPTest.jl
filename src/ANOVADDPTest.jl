@@ -1,17 +1,19 @@
 module ANOVADDPTest
 
 using Random: AbstractRNG, MersenneTwister
-using Distributions: logpdf, NegativeBinomial
+using Distributions: logpdf, NegativeBinomial, DiscreteMultivariateDistribution
 using SpecialFunctions: loggamma, logbeta, logfactorial
 using ExtractMacro: @extract
 using DPMNeal3
 using DataFrames
 import Base.length
+import Distributions: pdf, logpdf
 import DPMNeal3: parent_dpm, logpredlik, update_hyperpars!, update_suffstats!
 # export GenericBlock, SpecificBlock, Data, update!, train
 export NormalDDP, PoissonDDP, NormalData, PoissonData, BernoulliDDP, BernoulliData, dp_mass, n_clusters, cluster_sizes, cluster_capacity, cluster_labels, active_clusters, passive_clusters, update!, train, simple_effect_probabilities, interaction_effect_probabilities
 using StatsBase: counts, denserank
 
+include("womack.jl")
 include("normal.jl")
 include("poisson.jl")
 include("bernoulli.jl")

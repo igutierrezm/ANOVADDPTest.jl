@@ -19,7 +19,7 @@ struct BernoulliDDP <: AbstractDPM
     b0::Float64
     a1::Vector{Vector{Float64}}
     b1::Vector{Vector{Float64}}
-    πgamma::Vector{Float64}
+    gammaprior::Womack
     gamma::Vector{Bool}
     G::Int
     function BernoulliDDP(
@@ -30,14 +30,15 @@ struct BernoulliDDP <: AbstractDPM
         αa0::Float64 = 2.0,
         αb0::Float64 = 4.0,
         a0::Float64 = 2.0,
-        b0::Float64 = 4.0
+        b0::Float64 = 4.0,
+        ζ0::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0 = αa0, b0 = αb0)
         a1 = [a0 * ones(G)]
         b1 = [b0 * ones(G)]
-        πgamma = ones(G) / G
+        gammaprior = Womack(G - 1, ζ0)
         gamma = ones(Bool, G)
-        new(parent, a0, b0, a1, b1, πgamma, gamma, G)
+        new(parent, a0, b0, a1, b1, gammaprior, gamma, G)
     end
 end
 
@@ -120,7 +121,7 @@ function logmglik(m::BernoulliDDP, j::Int, k::Int)
 end
 
 function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
-    @extract m : πgamma gamma
+    @extract m : gammaprior gamma
     A = active_clusters(m)
 
     # Resample gamma[g], given the other gamma's
@@ -128,7 +129,7 @@ function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
         # log-odds (numerator)
         gamma[g] = 1
         update_suffstats!(m, data)
-        log_num = log(πgamma[sum(gamma)])
+        log_num = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1, g)
             log_num += logmglik(m, j, k)
         end
@@ -136,7 +137,7 @@ function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
         # log-odds (denominator)
         gamma[g] = 0
         update_suffstats!(m, data)
-        log_den = log(πgamma[sum(gamma)])
+        log_den = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1)
             log_den += logmglik(m, j, k)
         end

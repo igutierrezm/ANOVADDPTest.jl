@@ -23,7 +23,7 @@ struct NormalDDP <: AbstractDPM
     r1::Vector{Vector{Float64}}
     u1::Vector{Vector{Float64}}
     s1::Vector{Vector{Float64}}
-    πgamma::Vector{Float64}
+    gammaprior::Womack
     gamma::Vector{Bool}
     G::Int
     function NormalDDP(
@@ -36,16 +36,17 @@ struct NormalDDP <: AbstractDPM
         v0::Float64 = 2.0,
         r0::Float64 = 1.0,
         u0::Float64 = 0.0,
-        s0::Float64 = 1.0
+        s0::Float64 = 1.0,
+        ζ0::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0, b0)
         v1 = [v0 * ones(G)]
         r1 = [r0 * ones(G)]
         u1 = [u0 * ones(G)]
         s1 = [s0 * ones(G)]
-        πgamma = ones(G) / G
+        gammaprior = Womack(G - 1, ζ0)
         gamma = ones(Bool, G)
-        new(parent, v0, r0, u0, s0, v1, r1, u1, s1, πgamma, gamma, G)
+        new(parent, v0, r0, u0, s0, v1, r1, u1, s1, gammaprior, gamma, G)
     end
 end
 
@@ -108,7 +109,7 @@ function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
 end
 
 function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
-    @extract m : πgamma gamma
+    @extract m : gammaprior gamma
     A = active_clusters(m)
 
     # Resample gamma[g], given the other gamma's
@@ -116,7 +117,7 @@ function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
         # log-odds (numerator)
         gamma[g] = 1
         update_suffstats!(m, data)
-        log_num = log(πgamma[sum(gamma)])
+        log_num = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1, g)
             log_num += logmglik(m, j, k)
         end
@@ -124,7 +125,7 @@ function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
         # log-odds (denominator)
         gamma[g] = 0
         update_suffstats!(m, data)
-        log_den = log(πgamma[sum(gamma)])
+        log_den = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1)
             log_den += logmglik(m, j, k)
         end
