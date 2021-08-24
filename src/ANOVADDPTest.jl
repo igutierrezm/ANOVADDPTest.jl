@@ -44,7 +44,7 @@ function train(rng, m::AbstractDPM, train, predict; iter = 2000, warmup = iter �
     fchain = [zeros(length(predict)) for _ = 1:(iter - warmup) ÷ thin]
     for t in 1:iter
         update!(rng, m, train)
-        if t > warmup
+        if t > warmup && ((t - warmup) % thin == 0)
             t0 = (t - warmup) ÷ thin
             gammachain[t0] = m.gamma[:]
             for i = 1:length(predict)
