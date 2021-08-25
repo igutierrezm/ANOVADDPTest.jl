@@ -210,6 +210,6 @@ end
     @test all(mode(chain.gamma) .== [true, true, true])
 end
 
-# Note:
-# Remember that you can use denserank(x) for converting
-# vector codes to numeric codes
+# # Note:
+# # Remember that you can use denserank(x) for converting
+# # vector codes to numeric codes

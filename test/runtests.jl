@@ -1,4 +1,6 @@
 using ANOVADDPTest
+using ANOVADDPTest: dp_mass, n_clusters,  cluster_sizes
+using ANOVADDPTest: active_clusters, passive_clusters, cluster_capacity, update!
 using Distributions
 using SpecialFunctions
 using StatsBase: mode

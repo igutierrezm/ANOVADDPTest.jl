@@ -11,7 +11,6 @@ struct PoissonData
 end
 
 PoissonData(x::Vector{Int}, y::Vector{Int}) = PoissonData(x[:, :], y)
-length(data::PoissonData) = length(data.y)
 
 struct PoissonDDP <: AbstractDPM
     parent::DPM

@@ -11,7 +11,6 @@ struct NormalData
 end
 
 NormalData(x::Vector{Int}, y::Vector{Float64}) = NormalData(x[:, :], y)
-length(data::NormalData) = length(data.y)
 
 struct NormalDDP <: AbstractDPM
     parent::DPM

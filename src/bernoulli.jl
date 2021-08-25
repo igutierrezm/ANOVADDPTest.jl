@@ -11,7 +11,6 @@ struct BernoulliData
 end
 
 BernoulliData(x::Vector{Int}, y::Vector{Bool}) = BernoulliData(x[:, :], y)
-length(data::BernoulliData) = length(data.y)
 
 struct BernoulliDDP <: AbstractDPM
     parent::DPM
