@@ -3,7 +3,7 @@ struct BernoulliData
     x::Vector{Int}
     y::Vector{Bool}
     Xunique::Vector{Vector{Int}}
-    function BernoulliData(x::Vector{Int}, y::Vector{Bool})
+    function BernoulliData(x::Matrix{Int}, y::Vector{Bool})
         X = x[:, :]
         Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
         new(X, x, y, Xunique)

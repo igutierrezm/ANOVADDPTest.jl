@@ -3,7 +3,7 @@ struct PoissonData
     x::Vector{Int}
     y::Vector{Int}
     Xunique::Vector{Vector{Int}}
-    function PoissonData(x::Vector{Int}, y::Vector{Int})
+    function PoissonData(x::Matrix{Int}, y::Vector{Int})
         X = x[:, :]
         Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
         new(X, x, y, Xunique)
