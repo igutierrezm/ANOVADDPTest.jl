@@ -3,7 +3,6 @@ using ANOVADDPTest
 using DataFrames
 using Distributions
 using Random
-include("examples/utils.jl")
 
 function generate_plot_poisson(N, G, distinct_groups)
     rng = MersenneTwister(1)

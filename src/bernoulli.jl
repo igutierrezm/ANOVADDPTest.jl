@@ -3,8 +3,8 @@ struct BernoulliData
     x::Vector{Int}
     y::Vector{Bool}
     Xunique::Vector{Vector{Int}}
-    function BernoulliData(x::Matrix{Int}, y::Vector{Bool})
-        X = x[:, :]
+    function BernoulliData(X::Matrix{Int}, y::Vector{Bool})
+        x = denserank([X[i, :] for i in 1:size(X, 1)])
         Xunique = sort(unique([X[i, :] for i in 1:size(X, 1)]))
         new(X, x, y, Xunique)
     end

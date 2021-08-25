@@ -13,7 +13,7 @@ import DPMNeal3: parent_dpm, logpredlik, update_hyperpars!, update_suffstats!
 
 export BernoulliDDP, NormalDDP, PoissonDDP
 export BernoulliData, NormalData, PoissonData
-export train, simple_effect_probabilities, interaction_effect_probabilities
+export train, simple_effect_probabilities, interaction_effect_probabilities, expandgrid
 
 include("expandgrid.jl")
 include("womack.jl")
