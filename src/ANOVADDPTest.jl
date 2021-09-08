@@ -7,13 +7,15 @@ using ExtractMacro
 using Random
 using SpecialFunctions
 using StatsBase
+using StatsModels
 
 import Distributions: pdf, logpdf, shape, scale, rate, rand
 import DPMNeal3: parent_dpm, logpredlik, update_hyperpars!, update_suffstats!
 
 export BernoulliDDP, NormalDDP, PoissonDDP
 export BernoulliData, NormalData, PoissonData
-export train, simple_effect_probabilities, interaction_effect_probabilities, expandgrid
+export train, simple_effect_probabilities
+export interaction_effect_probabilities, expandgrid
 
 include("expandgrid.jl")
 include("womack.jl")
