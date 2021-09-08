@@ -4,7 +4,7 @@ RUN apt-get -y install git
 RUN apt-get -y install r-base
 
 # Build
-# docker build -t dpmneal3 .
+# docker build -t julia_git_r .
 
 # Run
-# sudo docker run --rm -di dpmneal3
+# sudo docker run --rm -di julia_git_r
