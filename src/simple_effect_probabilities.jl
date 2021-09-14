@@ -9,5 +9,5 @@ function simple_effect_probabilities(chain, data)
         subset = maximum(subset, dims = 2)[:, 1] .== 1
         p_effects[i] = mean(maximum(ch_gamma_mat[:, subset], dims = 2))
     end
-    return DataFrame(var1 = 1:nvar, prob = p_effects)
+    return DataFrame(var1 = ["x$i" for i in 1:nvar], prob = p_effects)
 end

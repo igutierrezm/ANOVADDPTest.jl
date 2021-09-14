@@ -16,7 +16,10 @@ export BernoulliDDP, NormalDDP, PoissonDDP
 export BernoulliData, NormalData, PoissonData
 export train, simple_effect_probabilities
 export interaction_effect_probabilities, expandgrid
+export gamma_codebook, gamma_posterior
 
+include("gamma_posterior.jl")
+include("gamma_codebook.jl")
 include("expandgrid.jl")
 include("womack.jl")
 include("normalinversegamma.jl")

@@ -3,8 +3,8 @@ function interaction_effect_probabilities(ch, data)
     ch_gamma_mat = collect(hcat(ch.gamma...)')
     nvar = size(γpost_x, 2)
     p_effects = zeros(nvar * (nvar - 1) ÷ 2)
-    var1 = zeros(nvar * (nvar - 1) ÷ 2)
-    var2 = zeros(nvar * (nvar - 1) ÷ 2)
+    var1 = zeros(Int, nvar * (nvar - 1) ÷ 2)
+    var2 = zeros(Int, nvar * (nvar - 1) ÷ 2)
     row = 1
     for i in 1:(nvar - 1), j = (i + 1):nvar
         subset = deepcopy(γpost_x)
@@ -16,5 +16,9 @@ function interaction_effect_probabilities(ch, data)
         var2[row] = j
         row += 1
     end
-    return DataFrame(var1 = var1, var2 = var2, prob = p_effects)
+    return DataFrame(
+        var1 = "x" .* string.(var1),
+        var2 = "x" .* string.(var2),
+        prob = p_effects
+    )
 end
