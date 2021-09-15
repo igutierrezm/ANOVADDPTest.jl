@@ -63,8 +63,8 @@ function anova_bnp_normal(
     )
 end
 
-group_codes(x::group_codes) = x.group_codes
-group_probs(x::group_probs) = x.group_probs
-effects1(x::effects1) = x.effects1
-effects2(x::effects2) = x.effects2
-fpost(x::fpost) = x.fpost
+group_codes(x::anova_bnp_normal_fitted) = x.group_codes
+group_probs(x::anova_bnp_normal_fitted) = x.group_probs
+effects1(x::anova_bnp_normal_fitted) = x.effects1
+effects2(x::anova_bnp_normal_fitted) = x.effects2
+fpost(x::anova_bnp_normal_fitted) = x.fpost
