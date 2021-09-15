@@ -1,12 +1,12 @@
 # install.packages("JuliaConnectoR")
+# install.packages("dplyr")
 library(JuliaConnectoR)
 library(dplyr)
 juliaSetupOk()
 
-# Install ANOVADDPTest.jl (works for Julia 1.6.1)
+# Install ANOVADDPTest.jl
 juliaEval('
     import Pkg;
-    Pkg.rm("ANOVADDPTest");
     Pkg.add(url = "https://github.com/igutierrezm/ANOVADDPTest.jl");
 ')
 
@@ -28,7 +28,8 @@ simulate_sample_normal <- function(rseed, N) {
 data <- simulate_sample_normal(1, 1000)
 
 # Fit the model
-fit <- ANOVADDPTest$anova_bnp_normal(data$y, data$X) %>% juliaGet();
+fit <- ANOVADDPTest$anova_bnp_normal(data$y, data$X)
+%>% juliaGet();
 
 # Compute the group probabilities
 group_probs <- fit$group_probs

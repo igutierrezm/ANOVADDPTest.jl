@@ -1,3 +1,11 @@
+struct anova_bnp_normal_fitted
+    group_codes::DataFrame
+    group_probs::DataFrame
+    effects1::DataFrame
+    effects2::DataFrame
+    fpost::DataFrame
+end
+
 # Fit the model in a more pleasant way
 function anova_bnp_normal(
     y::Vector{Float64},
@@ -44,11 +52,13 @@ function anova_bnp_normal(
     effects2 = interaction_effect_probabilities(ch, data0)
 
     # Compute p(y0 | y)
-    df = DataFrame(
-        group = data1.x,
-        y = data1.y,
-        f = mean(ch.f)
-    )
+    fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
-    return Tuple(group_codes, group_probs, effects1, effects2, df)
+    return anova_bnp_normal_fitted(
+        group_codes,
+        group_probs,
+        effects1,
+        effects2,
+        fpost
+    )
 end
