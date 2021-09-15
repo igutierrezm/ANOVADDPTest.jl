@@ -29,14 +29,7 @@ data <- simulate_sample_normal(1, 1000)
 
 # Fit the model
 fit <- ANOVADDPTest$anova_bnp_normal(data$y, data$X)
-a <- juliaGet(fit);
-
-a <- juliaGet(fit)
-a
-# Compute the group probabilities
-group_probs <- fit$group_probs
-
-fit$values[[1]]
+ANOVADDPTest$group_probs(fit)
 
 
 juliaEval('
