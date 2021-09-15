@@ -49,11 +49,6 @@ function anova_bnp_normal(
         y = data1.y,
         f = mean(ch.f)
     )
-    return Dict(
-        :group_codes => group_codes,
-        :group_probs => group_probs,
-        :effects_1st_order => effects1,
-        :effects_1st_order => effects2,
-        :posterior_predictive_density => df,
-    )
+
+    return Tuple(group_codes, group_probs, effects1, effects2, df)
 end
