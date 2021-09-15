@@ -1,6 +1,5 @@
 module ANOVADDPTest
 
-using CategoricalArrays
 using DataFrames
 using Distributions
 using DPMNeal3

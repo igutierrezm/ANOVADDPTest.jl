@@ -52,11 +52,7 @@ function anova_bnp_normal(
     effects2 = interaction_effect_probabilities(ch, data0)
 
     # Compute p(y0 | y)
-    fpost = DataFrame(
-        group = CategoricalArray(data1.x, ordered=true),
-        y = data1.y,
-        f = mean(ch.f)
-    )
+    fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
     return anova_bnp_normal_fitted(
         group_codes,

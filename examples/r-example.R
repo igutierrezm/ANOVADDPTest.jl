@@ -45,5 +45,5 @@ fpost <- ANOVADDPTest$fpost(fit) %>% as.data.frame()
 fpost
 
 # Plot the posterior predictive density
-p <- ggplot(fpost, aes(x = y, y = f, color = group)) + geom_line()
+p <- ggplot(fpost, aes(x = y, y = f, color = factor(group))) + geom_line()
 ggsave("fig1.png", p)
