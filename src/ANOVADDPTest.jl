@@ -17,6 +17,7 @@ export BernoulliData, NormalData, PoissonData
 export train, simple_effect_probabilities
 export interaction_effect_probabilities, expandgrid
 export gamma_codebook, gamma_posterior, anova_bnp_normal
+export group_codes, group_probs, effects1, effects2, fpost
 
 include("gamma_posterior.jl")
 include("gamma_codebook.jl")

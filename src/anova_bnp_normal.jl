@@ -62,3 +62,9 @@ function anova_bnp_normal(
         fpost
     )
 end
+
+group_codes(x::group_codes) = x.group_codes
+group_probs(x::group_probs) = x.group_probs
+effects1(x::effects1) = x.effects1
+effects2(x::effects2) = x.effects2
+fpost(x::fpost) = x.fpost

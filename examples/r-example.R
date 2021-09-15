@@ -1,5 +1,5 @@
-# install.packages("JuliaConnectoR")
-# install.packages("dplyr")
+install.packages("JuliaConnectoR")
+install.packages("dplyr")
 library(JuliaConnectoR)
 library(dplyr)
 juliaSetupOk()
@@ -29,9 +29,20 @@ data <- simulate_sample_normal(1, 1000)
 
 # Fit the model
 fit <- ANOVADDPTest$anova_bnp_normal(data$y, data$X)
-%>% juliaGet();
+a <- juliaGet(fit);
 
+a <- juliaGet(fit)
+a
 # Compute the group probabilities
 group_probs <- fit$group_probs
 
 fit$values[[1]]
+
+
+juliaEval('
+    Pkg.add("DataFrames");
+    using DataFrames;
+    a = DataFrame([[1]], ["group1"]);
+')
+
+juliaGet(a)
