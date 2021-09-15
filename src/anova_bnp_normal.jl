@@ -1,4 +1,4 @@
-struct anova_bnp_normal_fitted
+struct anova_bnp_fitted
     group_codes::DataFrame
     group_probs::DataFrame
     effects1::DataFrame
@@ -54,7 +54,7 @@ function anova_bnp_normal(
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
-    return anova_bnp_normal_fitted(
+    return anova_bnp_fitted(
         group_codes,
         group_probs,
         effects1,
@@ -63,8 +63,8 @@ function anova_bnp_normal(
     )
 end
 
-group_codes(x::anova_bnp_normal_fitted) = x.group_codes
-group_probs(x::anova_bnp_normal_fitted) = x.group_probs
-effects1(x::anova_bnp_normal_fitted) = x.effects1
-effects2(x::anova_bnp_normal_fitted) = x.effects2
-fpost(x::anova_bnp_normal_fitted) = x.fpost
+group_codes(x::anova_bnp_fitted) = x.group_codes
+group_probs(x::anova_bnp_fitted) = x.group_probs
+effects1(x::anova_bnp_fitted) = x.effects1
+effects2(x::anova_bnp_fitted) = x.effects2
+fpost(x::anova_bnp_fitted) = x.fpost

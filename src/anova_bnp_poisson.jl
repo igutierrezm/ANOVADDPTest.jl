@@ -1,19 +1,20 @@
-using Revise
-using ANOVADDPTest
-using StatsModels
-using Statistics
-using DataFrames
-using Random
+# using Revise
+# using ANOVADDPTest
+# using StatsModels
+# using Statistics
+# using DataFrames
+# using Distributions
+# using Random
 
-# Simulate sample
-function simulate_sample_poisson(rng, N)
-    X = rand(rng, 1:2, N, 2);
-    y = rand(rng, Poisson(1.0), N);
-    for i in 1:N
-        ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-    end
-    return y, X
-end
+# # Simulate sample
+# function simulate_sample_poisson(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     y = rand(rng, Poisson(1.0), N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end
 
 # Fit the model in a more pleasant way
 function anova_bnp_poisson(
@@ -37,7 +38,7 @@ function anova_bnp_poisson(
     lb = minimum(y)
     ub = maximum(y)
     y1 = lb:ub |> x -> repeat(x, inner = G)
-    X1 = repeat(vcat(data0.Xunique'...), n)
+    X1 = repeat(vcat(data0.Xunique'...), ub - lb + 1)
     data1 = PoissonData(X1, y1)
 
     # Initialize the model
@@ -47,11 +48,33 @@ function anova_bnp_poisson(
 
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);
-    return ch
+
+    # Compute p(γ | y)
+    group_probs = gamma_posterior(ch);
+
+    # Compute the codebook
+    group_codes = gamma_codebook(data0);
+
+    # Compute the effects
+    effects1 = simple_effect_probabilities(ch, data0)
+    effects2 = interaction_effect_probabilities(ch, data0)
+
+    # Compute p(y0 | y)
+    fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
+
+    return anova_bnp_fitted(
+        group_codes,
+        group_probs,
+        effects1,
+        effects2,
+        fpost
+    )
 end
 
-# Example
-N = 1000;
-rng = MersenneTwister(1);
-y, X = simulate_sample_poisson(rng, N);
-data1 = anova_bnp_poisson(y, X);
+# # Example
+# N = 1000;
+# rng = MersenneTwister(1);
+# y, X = simulate_sample_poisson(rng, N);
+# data1 = anova_bnp_poisson(y, X);
+# group_probs = gamma_posterior(data1)
+# show(group_probs; allrows = true)

@@ -4,12 +4,23 @@ using Gadfly
 using StatsModels
 using Statistics
 using DataFrames
+using Distributions
 using Random
 
+# # Simulate sample
+# function simulate_sample_normal(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     y = randn(rng, N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end
+
 # Simulate sample
-function simulate_sample_normal(rng, N)
+function simulate_sample_poisson(rng, N)
     X = rand(rng, 1:2, N, 2);
-    y = randn(rng, N);
+    y = rand(rng, Poisson(1.0), N);
     for i in 1:N
         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
     end
@@ -19,11 +30,12 @@ end
 # Example
 N = 1000;
 rng = MersenneTwister(1);
-y, X = simulate_sample_normal(rng, N);
-fit = anova_bnp_normal(y, X);
-show(fit[:group_probs]; allrows = true)
+y, X = simulate_sample_poisson(rng, N);
+fit = anova_bnp_poisson(y, X);
+show(group_probs(fit); allrows = true)
+show(group_codes(fit); allrows = true)
 plot(
-    fit[:posterior_predictive_density],
+    fpost(fit),
     x = :y,
     y = :f,
     color = :group,
