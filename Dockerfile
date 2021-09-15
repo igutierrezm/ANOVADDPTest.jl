@@ -4,7 +4,7 @@ RUN apt-get -y install git
 RUN apt-get -y install r-base
 
 # Build
-# docker build -t julia_git_r .
+# docker build -t anovaddptest .
 
 # Run
-# sudo docker run --rm -di julia_git_r
+# sudo docker run --rm -di anovaddptest
