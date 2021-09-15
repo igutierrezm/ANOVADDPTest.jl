@@ -1,3 +1,6 @@
+# Setup =======================================================================
+
+# Install some useful R packages
 install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("JuliaConnectoR")
@@ -7,15 +10,13 @@ library(JuliaConnectoR)
 juliaSetupOk()
 
 # Install ANOVADDPTest.jl
-juliaEval('
-    import Pkg;
-    Pkg.add(url = "https://github.com/igutierrezm/ANOVADDPTest.jl");
-')
+juliaEval('import Pkg')
+juliaEval('Pkg.add(url = "https://github.com/igutierrezm/ANOVADDPTest.jl")')
 
-# Load ANOVADDPTest
+# Load ANOVADDPTest.jl
 ANOVADDPTest <- juliaImport("ANOVADDPTest")
 
-# Simulate a sample
+# An utility function: Simulate a test sample
 simulate_sample_normal <- function(rseed, N) {
     set.seed(rseed)
     X <- sample(1:2, N * 2, replace = TRUE) %>% matrix(ncol = 2)
@@ -27,23 +28,29 @@ simulate_sample_normal <- function(rseed, N) {
     }
     list(y = y, X = X)
 }
-data <- simulate_sample_normal(1, 1000)
 
-# Fit the model
-fit <- ANOVADDPTest$anova_bnp_normal(data$y, data$X)
+# Body ========================================================================
+
+# Create a test sample
+data <- simulate_sample_normal(1, 1000)
+y <- data$y # a response vector
+X <- data$X # a design matrix
+
+# Fit the model (much easier than before, I think)
+fit <- ANOVADDPTest$anova_bnp_normal(y, X)
 
 # Retrieve the posterior probability of each group
-group_probs <- ANOVADDPTest$group_probs(fit) %>% as.data.frame()
-group_probs
+(group_probs <- ANOVADDPTest$group_probs(fit) %>% as.data.frame())
 
 # Retrieve the meaning of each group
-group_codes <- ANOVADDPTest$group_codes(fit) %>% as.data.frame()
-group_codes
+# (e.g. what does group2 means in terms of the factors?)
+(group_codes <- ANOVADDPTest$group_codes(fit) %>% as.data.frame())
 
 # Retrieve the posterior predictive density
-fpost <- ANOVADDPTest$fpost(fit) %>% as.data.frame()
-fpost
+(fpost <- ANOVADDPTest$fpost(fit) %>% as.data.frame())
 
 # Plot the posterior predictive density
 p <- ggplot(fpost, aes(x = y, y = f, color = factor(group))) + geom_line()
 ggsave("fig1.png", p)
+# Should we make this a function? I don't know.
+# It is too simple, but once the the plot is done, is very difficult to modify.
