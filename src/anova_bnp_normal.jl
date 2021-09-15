@@ -1,21 +1,3 @@
-using Revise
-using ANOVADDPTest
-using Gadfly
-using StatsModels
-using Statistics
-using DataFrames
-using Random
-
-# Simulate sample
-function simulate_sample_normal(rng, N)
-    X = rand(rng, 1:2, N, 2);
-    y = randn(rng, N);
-    for i in 1:N
-        ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-    end
-    return y, X
-end
-
 # Fit the model in a more pleasant way
 function anova_bnp_normal(
     y::Vector{Float64},
@@ -52,25 +34,26 @@ function anova_bnp_normal(
     ch = train(rng, m, data0, data1; iter, warmup);
 
     # Compute p(γ | y)
-    gamma_probs = gamma_posterior(ch);
+    group_probs = gamma_posterior(ch);
 
     # Compute the codebook
-    gamma_codes = gamma_codebook(data0);
+    group_codes = gamma_codebook(data0);
 
     # Compute the effects
     effects1 = simple_effect_probabilities(ch, data0)
     effects2 = interaction_effect_probabilities(ch, data0)
 
     # Compute p(y0 | y)
-    df = DataFrame(x = data1.x, y = data1.y, f = mean(ch.f))
-
-    return df, gamma_probs, gamma_codes, effects1, effects2
+    df = DataFrame(
+        group = data1.x,
+        y = data1.y,
+        f = mean(ch.f)
+    )
+    return Dict(
+        :group_codes => group_codes,
+        :group_probs => group_probs,
+        :effects_1st_order => effects1,
+        :effects_1st_order => effects2,
+        :posterior_predictive_density => df,
+    )
 end
-
-# Example
-N = 1000;
-rng = MersenneTwister(1);
-y, X = simulate_sample_normal(rng, N);
-df, gamma_probs, gamma_codes, effects1, effects2 = anova_bnp_normal(y, X);
-show(effects2; allrows = true)
-plot(df, x = :y, y = :f, color = :x, Geom.line, Scale.color_discrete())

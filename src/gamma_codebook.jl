@@ -8,6 +8,6 @@ function gamma_codebook(data0)
     for i in 1:G, j in 1:D
         df[i, j] = data0.Xunique[i][j]
     end
-    insertcols!(df, D + 1, :g => 1:G)
+    insertcols!(df, 1, :group => 1:G)
     return df
 end

@@ -8,7 +8,7 @@ function gamma_posterior(chain)
     G = length(gamma_unique[1])
     df = DataFrame(
         [zeros(Bool, N) for k in 2:G],
-        [Symbol("gamma$i") for i in 2:G]
+        [Symbol("group$i") for i in 2:G]
     )
     for i in 1:N, j in 2:G
         df[i, j - 1] = gamma_unique[i][j]
