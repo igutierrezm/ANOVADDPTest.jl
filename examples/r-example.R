@@ -49,8 +49,21 @@ fit <- ANOVADDPTest$anova_bnp_normal(y, X)
 # Retrieve the posterior predictive density
 (fpost <- ANOVADDPTest$fpost(fit) %>% as.data.frame())
 
+# Retrieve the posterior predictive density
+(ANOVADDPTest$effects2(fit) %>% as.data.frame())
+
 # Plot the posterior predictive density
-p <- ggplot(fpost, aes(x = y, y = f, color = factor(group))) + geom_line()
+p <-
+    ggplot(fpost, aes(x = y, y = f, color = factor(group))) + geom_line()
 ggsave("fig1.png", p)
 # Should we make this a function? I don't know.
 # It is too simple, but once the the plot is done, is very difficult to modify.
+
+# Main functions:
+predictive_plot_interaction <- function(fit, i, j) {}
+predictive_plot_simple <- function(fit, i) {}
+group_codes <- function(fit) {}
+gamma_post <- function(fit) {}
+f_post <- function(fit) {}
+hypothesis_post_simple <- function(fit) {}
+hypothesis_post_interaction <- function(fit) {}
