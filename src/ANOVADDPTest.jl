@@ -34,5 +34,6 @@ include("simple_effect_probabilities.jl")
 include("interaction_effect_probabilities.jl")
 include("anova_bnp_normal.jl")
 include("anova_bnp_poisson.jl")
+include("anova_bnp_bernoulli.jl")
 
 end # module
