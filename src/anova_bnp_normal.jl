@@ -48,19 +48,20 @@ function anova_bnp_normal(
     group_codes = gamma_codebook(data0);
 
     # Compute the effects
-    effects1 = simple_effect_probabilities(ch, data0)
-    effects2 = interaction_effect_probabilities(ch, data0)
+    return ch, data0
+    # effects1 = simple_effect_probabilities(ch, data0)
+    # effects2 = interaction_effect_probabilities(ch, data0)
 
-    # Compute p(y0 | y)
-    fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
+    # # Compute p(y0 | y)
+    # fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
-    return anova_bnp_fitted(
-        group_codes,
-        group_probs,
-        effects1,
-        effects2,
-        fpost
-    )
+    # return anova_bnp_fitted(
+    #     group_codes,
+    #     group_probs,
+    #     effects1,
+    #     effects2,
+    #     fpost
+    # )
 end
 
 group_codes(x::anova_bnp_fitted) = x.group_codes

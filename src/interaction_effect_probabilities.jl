@@ -1,5 +1,8 @@
 function interaction_effect_probabilities(ch, data)
     γpost_x = collect(hcat(data.Xunique...)')
+    γpost_mins = [minimum(γpost_x[:, i]) for i in 1:size(γpost_x, 2)]
+    γpost_x = γpost_x - ones(size(γpost_x, 1)) * (γpost_mins .- 1)'
+
     ch_gamma_mat = collect(hcat(ch.gamma...)')
     nvar = size(γpost_x, 2)
     p_effects = zeros(nvar * (nvar - 1) ÷ 2)
