@@ -48,7 +48,6 @@ function anova_bnp_normal(
     group_codes = gamma_codebook(data0);
 
     # Compute the effects
-    return ch, data0
     effects1 = simple_effect_probabilities(ch, data0)
     effects2 = interaction_effect_probabilities(ch, data0)
 
