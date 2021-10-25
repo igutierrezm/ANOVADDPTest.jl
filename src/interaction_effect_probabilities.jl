@@ -14,14 +14,16 @@ function interaction_effect_probabilities(ch, data)
         subset[:, i] = 2 .- (subset[:, i] .!= 1)
         subset[:, j] = 2 .- (subset[:, j] .!= 1)
         subset = maximum(subset, dims = 2)[:, 1] .== 1
-        p_effects[row] = mean(maximum(ch_gamma_mat[:, subset], dims = 2))
-        var1[row] = i
-        var2[row] = j
-        row += 1
+        if sum(subset) > 0
+            p_effects[row] = mean(maximum(ch_gamma_mat[:, subset], dims = 2))
+            var1[row] = i
+            var2[row] = j
+            row += 1
+        end
     end
     return DataFrame(
         var1 = "x" .* string.(var1),
         var2 = "x" .* string.(var2),
         prob = p_effects
-    )
+    )[1:(row - 1), :]
 end
