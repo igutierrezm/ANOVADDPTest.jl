@@ -21,14 +21,14 @@ function anova_bnp_normal(
     r0::Float64 = 1.0,
     u0::Float64 = 0.0,
     s0::Float64 = 1.0,
+    lb = minimum(y) - 0.5 * std(y),
+    ub = minimum(y) + 0.5 * std(y)
 )
     # Set data for training
     data0 = NormalData(X, y)
 
     # Set data for prediction
     G = length(data0.Xunique)
-    lb = minimum(y) - 0.5 * std(y)
-    ub = maximum(y) + 0.5 * std(y)
     y1 = range(lb, ub, length = n) |> x -> repeat(x, inner = G)
     X1 = repeat(vcat(data0.Xunique'...), n)
     data1 = NormalData(X1, y1)

@@ -28,14 +28,14 @@ function anova_bnp_poisson(
     b0::Float64 = 4.0,
     a1::Float64 = 2.0,
     b1::Float64 = 4.0,
+    lb::Float64 = minimum(y),
+    ub::Float64 = maximum(y)
 )
     # Set data for training
     data0 = PoissonData(X, y)
 
     # Set data for prediction
     G = length(data0.Xunique)
-    lb = minimum(y)
-    ub = maximum(y)
     y1 = lb:ub |> x -> repeat(x, inner = G)
     X1 = repeat(vcat(data0.Xunique'...), ub - lb + 1)
     data1 = PoissonData(X1, y1)
