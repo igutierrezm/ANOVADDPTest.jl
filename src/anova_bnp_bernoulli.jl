@@ -10,8 +10,8 @@ function anova_bnp_bernoulli(
     b0::Float64 = 4.0,
     a1::Float64 = 2.0,
     b1::Float64 = 4.0,
-    lb::Float64 = minimum(y),
-    ub::Float64 = maximum(y)
+    lb::Int = minimum(y),
+    ub::Int = maximum(y)
 )
     # Set data for training
     data0 = BernoulliData(X, y)
