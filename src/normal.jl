@@ -36,14 +36,14 @@ struct NormalDDP <: AbstractDPM
         r0::Float64 = 1.0,
         u0::Float64 = 0.0,
         s0::Float64 = 1.0,
-        ζ0::Float64 = 1.0,
+        rho0::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0, b0)
         v1 = [v0 * ones(G)]
         r1 = [r0 * ones(G)]
         u1 = [u0 * ones(G)]
         s1 = [s0 * ones(G)]
-        gammaprior = Womack(G - 1, ζ0)
+        gammaprior = Womack(G - 1, rho0)
         gamma = ones(Bool, G)
         new(parent, v0, r0, u0, s0, v1, r1, u1, s1, gammaprior, gamma, G)
     end

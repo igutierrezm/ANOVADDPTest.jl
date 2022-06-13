@@ -43,7 +43,7 @@ function anova_bnp_poisson(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = PoissonDDP(rng, N, G; αa0 = a0, αb0 = b0, a0 = a1, b0 = b1, ζ0 = zeta0)
+    m = PoissonDDP(rng, N, G; αa0 = a0, αb0 = b0, a0 = a1, b0 = b1, rho0 = zeta0)
 
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);
