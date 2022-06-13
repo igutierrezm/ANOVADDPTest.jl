@@ -14,10 +14,10 @@ PoissonData(x::Vector{Int}, y::Vector{Int}) = PoissonData(x[:, :], y)
 
 struct PoissonDDP <: AbstractDPM
     parent::DPM
-    a0::Float64
-    b0::Float64
-    a1::Vector{Vector{Int}}
-    b1::Vector{Vector{Int}}
+    a1::Float64
+    b1::Float64
+    a1_post::Vector{Vector{Int}}
+    b1_post::Vector{Vector{Int}}
     sumlogu::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
@@ -27,19 +27,19 @@ struct PoissonDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 1,
-        αa0::Float64 = 2.0,
-        αb0::Float64 = 4.0,
         a0::Float64 = 2.0,
         b0::Float64 = 4.0,
-        rho0::Float64 = 1.0,
+        a1::Float64 = 2.0,
+        b1::Float64 = 4.0,
+        ζ0::Float64 = 1.0,
     )
-        parent = DPM(rng, N; K0, a0 = αa0, b0 = αb0)
-        a1 = [a0 * ones(Int, G)]
-        b1 = [b0 * ones(Int, G)]
+        parent = DPM(rng, N; K0, a0 = a0, b0 = b0)
+        a1_post = [a1 * ones(Int, G)]
+        b1_post = [b1 * ones(Int, G)]
         sumlogu = [zeros(G)]
-        gammaprior = Womack(G - 1, rho0)
+        gammaprior = Womack(G - 1, ζ0)
         gamma = ones(Bool, G)
-        new(parent, a0, b0, a1, b1, sumlogu, gammaprior, gamma, G)
+        new(parent, a1, b1, a1_post, b1_post, sumlogu, gammaprior, gamma, G)
     end
 end
 
@@ -48,76 +48,76 @@ function parent_dpm(m::PoissonDDP)
 end
 
 function add_cluster!(m::PoissonDDP)
-    @extract m : G a0 b0 a1 b1 sumlogu
-    push!(a1, a0 * ones(G))
-    push!(b1, b0 * ones(G))
+    @extract m : G a1 b1 a1_post b1_post sumlogu
+    push!(a1_post, a1 * ones(G))
+    push!(b1_post, b1 * ones(G))
     push!(sumlogu, zeros(G))
 end
 
 function update_suffstats!(m::PoissonDDP, data)
     @extract data : y x
-    @extract m : a0 b0 a1 b1 sumlogu gamma
+    @extract m : a1 b1 a1_post b1_post sumlogu gamma
     d = cluster_labels(m)
-    while length(a1) < cluster_capacity(m)
+    while length(a1_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     for k in active_clusters(m)
-        a1[k] .= a0
-        b1[k] .= b0
+        a1_post[k] .= a1
+        b1_post[k] .= b1
         sumlogu[k] .= 0.0
     end
     for i = 1:length(y)
         di = d[i]
         zi = iszero(gamma[x[i]]) ? 1 : x[i]
         sumlogu[di][zi] += logfactorial(y[i])
-        a1[di][zi] += y[i]
-        b1[di][zi] += 1
+        a1_post[di][zi] += y[i]
+        b1_post[di][zi] += 1
     end
 end
 
 function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a0 b0 a1 b1 sumlogu gamma
-    while length(a1) < cluster_capacity(m)
+    @extract m : a1 b1 a1_post b1_post sumlogu gamma
+    while length(a1_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group k2/zi
-    a1[k2][zi] += y[i]
-    b1[k2][zi] += 1
+    a1_post[k2][zi] += y[i]
+    b1_post[k2][zi] += 1
     sumlogu[k2][zi] += logfactorial(y[i])
 
     # Modify cluster/group k1/zi
-    a1[k1][zi] -= y[i]
-    b1[k1][zi] -= 1
+    a1_post[k1][zi] -= y[i]
+    b1_post[k1][zi] -= 1
     sumlogu[k1][zi] -= logfactorial(y[i])
 end
 
 function logpredlik(m::PoissonDDP, data, i::Int, k::Int)
     d = cluster_labels(m)
-    @extract m : a1 b1 gamma
+    @extract m : a1_post b1_post gamma
     @extract data : y x
     j = iszero(gamma[x[i]]) ? 1 : x[i]
-    a1kj = a1[k][j] - (d[i] == k) * y[i]
-    b1kj = b1[k][j] - (d[i] == k)
+    a1kj = a1_post[k][j] - (d[i] == k) * y[i]
+    b1kj = b1_post[k][j] - (d[i] == k)
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
 end
 
 function logpredlik(m::PoissonDDP, train, predict, i::Int, k::Int)
-    @extract m : a1 b1 gamma
+    @extract m : a1_post b1_post gamma
     @extract predict : y x
     j = iszero(gamma[x[i]]) ? 1 : x[i]
-    a1kj = a1[k][j]
-    b1kj = b1[k][j]
+    a1kj = a1_post[k][j]
+    b1kj = b1_post[k][j]
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
 end
 
 function logmglik(m::PoissonDDP, j::Int, k::Int)
-    @extract m : a0 b0 a1 b1 sumlogu
+    @extract m : a1 b1 a1_post b1_post sumlogu
     return (
-        a0 * log(b0) - a1[k][j] * log(b1[k][j]) +
-        loggamma(a1[k][j]) - loggamma(a0) -
+        a1 * log(b1) - a1_post[k][j] * log(b1_post[k][j]) +
+        loggamma(a1_post[k][j]) - loggamma(a1) -
         sumlogu[k][j]
     )
 end
