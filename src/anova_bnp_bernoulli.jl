@@ -30,7 +30,7 @@ function anova_bnp_bernoulli(
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);
 
-    # Compute p(γ | y)
+    # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
 
     # Compute the codebook

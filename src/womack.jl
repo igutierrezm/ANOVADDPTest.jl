@@ -21,10 +21,10 @@ struct Womack <: DiscreteMultivariateDistribution
     end
 end
 
-function pdf(d::Womack, γ::Vector{Bool})
-    return d.p[sum(γ) + 1]
+function pdf(d::Womack, gamma::Vector{Bool})
+    return d.p[sum(gamma) + 1]
 end
 
-function logpdf(d::Womack, γ::Vector{Bool})
-    return log(pdf(d, γ))
+function logpdf(d::Womack, gamma::Vector{Bool})
+    return log(pdf(d, gamma))
 end
