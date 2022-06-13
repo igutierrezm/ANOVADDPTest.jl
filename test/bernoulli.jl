@@ -3,10 +3,10 @@
     rng = MersenneTwister(1)
     m = BernoulliDDP(rng, N, G; K0)
     @test m.G  == 4
-    @test m.a0 == 2.0
-    @test m.b0 == 4.0
-    @test m.a1 == [2 * ones(G)]
-    @test m.b1 == [4 * ones(G)]
+    @test m.a2 == 2.0
+    @test m.b2 == 4.0
+    @test m.a2_post == [2 * ones(G)]
+    @test m.b2_post == [4 * ones(G)]
     @test m.gamma  == ones(Bool, G)
 end
 
@@ -29,8 +29,8 @@ end
     rng = MersenneTwister(1)
     m = BernoulliDDP(rng, N, G; K0)
     ANOVADDPTest.add_cluster!(m)
-    @test length(m.a1) == 2
-    @test length(m.b1) == 2
+    @test length(m.a2_post) == 2
+    @test length(m.b2_post) == 2
 end
 
 @testset "update_suffstats! (1)" begin

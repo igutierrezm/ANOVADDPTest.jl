@@ -5,11 +5,11 @@ function anova_bnp_bernoulli(
     iter::Int = 4000, # taken from rstan::stan()
     warmup::Int = 2000, # taken from rstan::stan()
     seed::Int = 1, # taken from rstan::stan()
-    zeta0::Float64 = 1.0,
+    rho::Float64 = 1.0,
     a0::Float64 = 2.0,
     b0::Float64 = 4.0,
-    a1::Float64 = 2.0,
-    b1::Float64 = 4.0,
+    a2::Float64 = 2.0,
+    b2::Float64 = 4.0,
     lb::Int = minimum(y),
     ub::Int = maximum(y)
 )
@@ -25,7 +25,7 @@ function anova_bnp_bernoulli(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = BernoulliDDP(rng, N, G; αa0 = a0, αb0 = b0, a0 = a1, b0 = b1, rho0 = zeta0)
+    m = BernoulliDDP(rng, N, G; a0 = a0, b0 = b0, a2 = a2, b2 = b2, rho = rho)
 
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);

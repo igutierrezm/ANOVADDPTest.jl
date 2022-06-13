@@ -31,13 +31,13 @@ struct PoissonDDP <: AbstractDPM
         b0::Float64 = 4.0,
         a1::Float64 = 2.0,
         b1::Float64 = 4.0,
-        ζ0::Float64 = 1.0,
+        rho::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0 = a0, b0 = b0)
         a1_post = [a1 * ones(Int, G)]
         b1_post = [b1 * ones(Int, G)]
         sumlogu = [zeros(G)]
-        gammaprior = Womack(G - 1, ζ0)
+        gammaprior = Womack(G - 1, rho)
         gamma = ones(Bool, G)
         new(parent, a1, b1, a1_post, b1_post, sumlogu, gammaprior, gamma, G)
     end

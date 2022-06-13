@@ -14,10 +14,10 @@ BernoulliData(x::Vector{Int}, y::Vector{Bool}) = BernoulliData(x[:, :], y)
 
 struct BernoulliDDP <: AbstractDPM
     parent::DPM
-    a0::Float64
-    b0::Float64
-    a1::Vector{Vector{Float64}}
-    b1::Vector{Vector{Float64}}
+    a2::Float64
+    b2::Float64
+    a2_post::Vector{Vector{Float64}}
+    b2_post::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
     G::Int
@@ -26,18 +26,18 @@ struct BernoulliDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 1,
-        αa0::Float64 = 2.0,
-        αb0::Float64 = 4.0,
         a0::Float64 = 2.0,
         b0::Float64 = 4.0,
-        rho0::Float64 = 1.0,
+        a2::Float64 = 2.0,
+        b2::Float64 = 4.0,
+        rho::Float64 = 1.0,
     )
-        parent = DPM(rng, N; K0, a0 = αa0, b0 = αb0)
-        a1 = [a0 * ones(G)]
-        b1 = [b0 * ones(G)]
-        gammaprior = Womack(G - 1, rho0)
+        parent = DPM(rng, N; K0, a0 = a0, b0 = b0)
+        a2_post = [a2 * ones(G)]
+        b2_post = [b2 * ones(G)]
+        gammaprior = Womack(G - 1, rho)
         gamma = ones(Bool, G)
-        new(parent, a0, b0, a1, b1, gammaprior, gamma, G)
+        new(parent, a2, b2, a2_post, b2_post, gammaprior, gamma, G)
     end
 end
 
@@ -46,54 +46,54 @@ function parent_dpm(m::BernoulliDDP)
 end
 
 function add_cluster!(m::BernoulliDDP)
-    @extract m : a0 b0 a1 b1 G
-    push!(a1, a0 * ones(Int, G))
-    push!(b1, b0 * ones(Int, G))
+    @extract m : a2 b2 a2_post b2_post G
+    push!(a2_post, a2 * ones(Int, G))
+    push!(b2_post, b2 * ones(Int, G))
 end
 
 function update_suffstats!(m::BernoulliDDP, data)
     @extract data : y x
-    @extract m : a0 b0 a1 b1 gamma
+    @extract m : a2 b2 a2_post b2_post gamma
     d = cluster_labels(m)
-    while length(a1) < cluster_capacity(m)
+    while length(a2_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     for k in active_clusters(m)
-        a1[k] .= a0
-        b1[k] .= b0
+        a2_post[k] .= a2
+        b2_post[k] .= b2
     end
     for i = 1:length(y)
         di = d[i]
         zi = iszero(gamma[x[i]]) ? 1 : x[i]
-        a1[di][zi] += y[i]
-        b1[di][zi] += 1 - y[i]
+        a2_post[di][zi] += y[i]
+        b2_post[di][zi] += 1 - y[i]
     end
 end
 
 function update_suffstats!(m::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a0 b0 a1 b1 gamma
-    while length(a1) < cluster_capacity(m)
+    @extract m : a2_post b2_post gamma
+    while length(a2_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group k2/zi
-    a1[k2][zi] += y[i]
-    b1[k2][zi] += 1 - y[i]
+    a2_post[k2][zi] += y[i]
+    b2_post[k2][zi] += 1 - y[i]
 
     # Modify cluster/group k1/zi
-    a1[k1][zi] -= y[i]
-    b1[k1][zi] -= 1 - y[i]
+    a2_post[k1][zi] -= y[i]
+    b2_post[k1][zi] -= 1 - y[i]
 end
 
 function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
     @extract data : y x
-    @extract m : a1 b1 gamma
+    @extract m : a2_post b2_post gamma
     d = cluster_labels(m)
     j = iszero(gamma[x[i]]) ? 1 : x[i]
-    a1kj = a1[k][j] - (d[i] == k) * y[i]
-    b1kj = b1[k][j] - (d[i] == k) * (1 - y[i])
+    a1kj = a2_post[k][j] - (d[i] == k) * y[i]
+    b1kj = b2_post[k][j] - (d[i] == k) * (1 - y[i])
     if y[i]
         return log(a1kj / (a1kj + b1kj))
     else
@@ -103,10 +103,10 @@ end
 
 function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
     @extract predict : y x
-    @extract m : a1 b1 gamma
+    @extract m : a2_post b2_post gamma
     j = iszero(gamma[x[i]]) ? 1 : x[i]
-    a1kj = a1[k][j]
-    b1kj = b1[k][j]
+    a1kj = a2_post[k][j]
+    b1kj = b2_post[k][j]
     if y[i] == 1
         return log(a1kj / (a1kj + b1kj))
     else
@@ -115,8 +115,8 @@ function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
 end
 
 function logmglik(m::BernoulliDDP, j::Int, k::Int)
-    @extract m : a0 b0 a1 b1
-    return logbeta(a1[k][j], b1[k][j]) - logbeta(a0, b0)
+    @extract m : a2 b2 a2_post b2_post
+    return logbeta(a2_post[k][j], b2_post[k][j]) - logbeta(a2, b2)
 end
 
 function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
