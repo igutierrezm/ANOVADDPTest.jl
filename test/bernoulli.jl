@@ -1,44 +1,44 @@
 @testset "BernoulliDDP" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = BernoulliDDP(rng, N, G; K0)
-    @test m.G  == 4
-    @test m.a2 == 2.0
-    @test m.b2 == 4.0
-    @test m.a2_post == [2 * ones(G)]
-    @test m.b2_post == [4 * ones(G)]
-    @test m.gamma  == ones(Bool, G)
+    model = BernoulliDDP(rng, N, G; K0)
+    @test model.G  == 4
+    @test model.a2 == 2.0
+    @test model.b2 == 4.0
+    @test model.a2_post == [2 * ones(G)]
+    @test model.b2_post == [4 * ones(G)]
+    @test model.gamma  == ones(Bool, G)
 end
 
 @testset "Bernoulli inherited accessors" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = BernoulliDDP(rng, N, G; K0)
-    @test dp_mass(m) > 0.0
-    @test dp_mass(m) < Inf
-    @test n_clusters(m) == K0
-    @test sum(cluster_sizes(m) .== 0) == 1
-    @test sum(cluster_sizes(m)) == N
-    @test active_clusters(m) == Set(1:K0)
-    @test passive_clusters(m) == Set(K0 + 1)
-    @test cluster_capacity(m) == K0 + 1
+    model = BernoulliDDP(rng, N, G; K0)
+    @test dp_mass(model) > 0.0
+    @test dp_mass(model) < Inf
+    @test n_clusters(model) == K0
+    @test sum(cluster_sizes(model) .== 0) == 1
+    @test sum(cluster_sizes(model)) == N
+    @test active_clusters(model) == Set(1:K0)
+    @test passive_clusters(model) == Set(K0 + 1)
+    @test cluster_capacity(model) == K0 + 1
 end
 
 @testset "add_cluster!" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = BernoulliDDP(rng, N, G; K0)
-    ANOVADDPTest.add_cluster!(m)
-    @test length(m.a2_post) == 2
-    @test length(m.b2_post) == 2
+    model = BernoulliDDP(rng, N, G; K0)
+    ANOVADDPTest.add_cluster!(model)
+    @test length(model.a2_post) == 2
+    @test length(model.b2_post) == 2
 end
 
 @testset "update_suffstats! (1)" begin
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = BernoulliData([1], [true])
-    m = BernoulliDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
+    model = BernoulliDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
     # TODO: Add tests
 end
 
@@ -46,9 +46,9 @@ end
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = BernoulliData([1], [true])
-    m = BernoulliDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.update_suffstats!(m, data, 1, 1, 2)
+    model = BernoulliDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.update_suffstats!(model, data, 1, 1, 2)
     # TODO: Add tests
 end
 
@@ -56,9 +56,9 @@ end
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = BernoulliData([1], [true])
-    m = BernoulliDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.logpredlik(m, data, 1, first(passive_clusters(m)))
+    model = BernoulliDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.logpredlik(model, data, 1, first(passive_clusters(model)))
     # TODO: Add tests
 end
 
@@ -66,9 +66,9 @@ end
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
     data = BernoulliData([1, 1], [true, false])
-    m = BernoulliDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.logpredlik(m, data, 2, 1)
+    model = BernoulliDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.logpredlik(model, data, 2, 1)
     # TODO: Add some tests
 end
 
@@ -76,8 +76,8 @@ end
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
     data = BernoulliData([1, 1], [true, true])
-    m = BernoulliDDP(rng, N, G; K0)
-    update!(rng, m, data)
+    model = BernoulliDDP(rng, N, G; K0)
+    update!(rng, model, data)
 end
 
 @testset "update! (2)" begin
@@ -86,8 +86,8 @@ end
     x = rand(rng, 1:G, N)
     y = rand(rng, Bernoulli(0.5), N)
     data = BernoulliData(x, y)
-    m = BernoulliDDP(rng, N, G; K0)
-    update!(rng, m, data)
+    model = BernoulliDDP(rng, N, G; K0)
+    update!(rng, model, data)
 end
 
 @testset "train (1)" begin
@@ -99,8 +99,8 @@ end
     predict =
         expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
-    m = BernoulliDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = BernoulliDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, false, false])
 end
 
@@ -118,8 +118,8 @@ end
     predict =
         expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
-    m = BernoulliDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = BernoulliDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, true, false])
 end
 
@@ -137,8 +137,8 @@ end
     predict =
         expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
-    m = BernoulliDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = BernoulliDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, false, true])
 end
 
@@ -156,7 +156,7 @@ end
     predict =
         expandgrid(1:G, false:true) |>
         x -> BernoulliData(x...)
-    m = BernoulliDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = BernoulliDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, true, true])
 end

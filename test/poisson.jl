@@ -1,45 +1,45 @@
 @testset "PoissonDDP" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = PoissonDDP(rng, N, G; K0)
-    @test m.G  == 4
-    @test m.a1 == 2
-    @test m.b1 == 4
-    @test m.a1_post == [2 * ones(G)]
-    @test m.b1_post == [4 * ones(G)]
-    @test m.gamma  == ones(Bool, G)
+    model = PoissonDDP(rng, N, G; K0)
+    @test model.G  == 4
+    @test model.a1 == 2
+    @test model.b1 == 4
+    @test model.a1_post == [2 * ones(G)]
+    @test model.b1_post == [4 * ones(G)]
+    @test model.gamma  == ones(Bool, G)
 end
 
 @testset "PoissonDDP inherited accessors" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = PoissonDDP(rng, N, G; K0)
-    @test dp_mass(m) > 0.0
-    @test dp_mass(m) < Inf
-    @test n_clusters(m) == K0
-    @test sum(cluster_sizes(m) .== 0) == 1
-    @test sum(cluster_sizes(m)) == N
-    @test active_clusters(m) == Set(1:K0)
-    @test passive_clusters(m) == Set(K0 + 1)
-    @test cluster_capacity(m) == K0 + 1
+    model = PoissonDDP(rng, N, G; K0)
+    @test dp_mass(model) > 0.0
+    @test dp_mass(model) < Inf
+    @test n_clusters(model) == K0
+    @test sum(cluster_sizes(model) .== 0) == 1
+    @test sum(cluster_sizes(model)) == N
+    @test active_clusters(model) == Set(1:K0)
+    @test passive_clusters(model) == Set(K0 + 1)
+    @test cluster_capacity(model) == K0 + 1
 end
 
 @testset "add_cluster!" begin
     N, G, K0 = 10, 4, 1
     rng = MersenneTwister(1)
-    m = PoissonDDP(rng, N, G; K0)
-    ANOVADDPTest.add_cluster!(m)
-    @test length(m.a1_post) == 2
-    @test length(m.b1_post) == 2
-    @test length(m.sumlogfacty) == 2
+    model = PoissonDDP(rng, N, G; K0)
+    ANOVADDPTest.add_cluster!(model)
+    @test length(model.a1_post) == 2
+    @test length(model.b1_post) == 2
+    @test length(model.sumlogfacty) == 2
 end
 
 @testset "update_suffstats! (1)" begin
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = PoissonData([1], [1])
-    m = PoissonDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
+    model = PoissonDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
     # TODO: Add tests
 end
 
@@ -47,9 +47,9 @@ end
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = PoissonData([1], [1])
-    m = PoissonDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.update_suffstats!(m, data, 1, 1, 2)
+    model = PoissonDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.update_suffstats!(model, data, 1, 1, 2)
     # TODO: Add tests
 end
 
@@ -57,9 +57,9 @@ end
     N, G, K0 = 1, 1, 1
     rng = MersenneTwister(1)
     data = PoissonData([1], [1])
-    m = PoissonDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.logpredlik(m, data, 1, first(passive_clusters(m)))
+    model = PoissonDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.logpredlik(model, data, 1, first(passive_clusters(model)))
     # TODO: Add tests
 end
 
@@ -67,9 +67,9 @@ end
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
     data = PoissonData([1, 1], [1, 0])
-    m = PoissonDDP(rng, N, G; K0)
-    ANOVADDPTest.update_suffstats!(m, data)
-    ANOVADDPTest.logpredlik(m, data, 2, 1)
+    model = PoissonDDP(rng, N, G; K0)
+    ANOVADDPTest.update_suffstats!(model, data)
+    ANOVADDPTest.logpredlik(model, data, 2, 1)
     # TODO: Add some tests
 end
 
@@ -77,8 +77,8 @@ end
     N, G, K0 = 2, 1, 1
     rng = MersenneTwister(1)
     data = PoissonData([1, 1], [1, 0])
-    m = PoissonDDP(rng, N, G; K0)
-    update!(rng, m, data)
+    model = PoissonDDP(rng, N, G; K0)
+    update!(rng, model, data)
 end
 
 @testset "update! (2)" begin
@@ -87,8 +87,8 @@ end
     x = rand(rng, 1:G, N)
     y = rand(rng, Poisson(2), N)
     data = PoissonData(x, y)
-    m = PoissonDDP(rng, N, G; K0)
-    update!(rng, m, data)
+    model = PoissonDDP(rng, N, G; K0)
+    update!(rng, model, data)
 end
 
 @testset "train (1)" begin
@@ -100,8 +100,8 @@ end
     predict =
         expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
-    m = PoissonDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = PoissonDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, false, false])
 end
 
@@ -119,8 +119,8 @@ end
     predict =
         expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
-    m = PoissonDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = PoissonDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, true, false])
 end
 
@@ -138,8 +138,8 @@ end
     predict =
         expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
-    m = PoissonDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = PoissonDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, false, true])
 end
 
@@ -157,7 +157,7 @@ end
     predict =
         expandgrid(1:G, 1:8) |>
         x -> PoissonData(x...)
-    m = PoissonDDP(rng, N, G; K0)
-    chain = train(rng, m, data, predict)
+    model = PoissonDDP(rng, N, G; K0)
+    chain = train(rng, model, data, predict)
     @test all(mode(chain.gamma) .== [true, true, true])
 end
