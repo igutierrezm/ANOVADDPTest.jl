@@ -21,8 +21,8 @@ function anova_bnp_normal(
     lambda0::Float64 = 1.0,
     a0::Float64 = 2.0,
     b0::Float64 = 1.0,
-    lb = minimum(y) - 0.5 * std(y),
-    ub = minimum(y) + 0.5 * std(y)
+    lb = minimum(y) - 3 * std(y),
+    ub = minimum(y) + 3 * std(y)
 )
     # Set data for training
     data0 = NormalData(X, y)
