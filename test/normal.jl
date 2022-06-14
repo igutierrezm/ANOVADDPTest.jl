@@ -1,23 +1,23 @@
 @testset "NormalDDP" begin
     rng = MersenneTwister(1)
-    N, G, v0, r0, u0, s0 = 10, 4, 2.0, 3.0, 3.0, 9.0
-    m = NormalDDP(rng, N, G; v0, r0, u0, s0)
+    N, G, a0, lambda0, mu0, b0 = 10, 4, 2.0, 3.0, 3.0, 9.0
+    m = NormalDDP(rng, N, G; mu0, lambda0, a0, b0)
     @test m.G  == 4
-    @test m.v0 == 2
-    @test m.r0 == 3
-    @test m.u0 == 3.0
-    @test m.s0 == 9.0
-    @test m.v1 == [2 * ones(G)]
-    @test m.r1 == [3 * ones(G)]
-    @test m.u1 == [3 * ones(G)]
-    @test m.s1 == [9 * ones(G)]
+    @test m.a0 == 2
+    @test m.lambda0 == 3
+    @test m.mu0 == 3.0
+    @test m.b0 == 9.0
+    @test m.a0_post == [2 * ones(G)]
+    @test m.lambda0_post == [3 * ones(G)]
+    @test m.mu0_post == [3 * ones(G)]
+    @test m.b0_post == [9 * ones(G)]
     @test m.gamma  == ones(Bool, G)
 end
 
 @testset "NormalDDP inherited accessors" begin
     rng = MersenneTwister(1)
-    N, G, K0, a0, b0, v0, r0, u0, s0 = 10, 4, 5, 2.0, 4.0, 2.0, 3.0, 3.0, 9.0
-    m = NormalDDP(rng, N, G; K0, a0, b0, v0, r0, u0, s0)
+    N, G, K0, a, b, a0, lambda0, mu0, b0 = 10, 4, 5, 2.0, 4.0, 2.0, 3.0, 3.0, 9.0
+    m = NormalDDP(rng, N, G; K0, a, b, mu0, lambda0, a0, b0)
     @test dp_mass(m) > 0.0
     @test dp_mass(m) < Inf
     @test n_clusters(m) == K0
@@ -30,53 +30,53 @@ end
 
 @testset "add_cluster!" begin
     rng = MersenneTwister(1)
-    N, G, K0, a0, b0, v0, r0, u0, s0 = 10, 4, 5, 2.0, 4.0, 2.0, 3.0, 3.0, 9.0
-    m = NormalDDP(rng, N, G; K0, a0, b0, v0, r0, u0, s0)
+    N, G, K0, a, b, a0, lambda0, mu0, b0 = 10, 4, 5, 2.0, 4.0, 2.0, 3.0, 3.0, 9.0
+    m = NormalDDP(rng, N, G; K0, a, b, mu0, lambda0, a0, b0)
     ANOVADDPTest.add_cluster!(m)
-    @test length(m.v1) == 2
-    @test length(m.r1) == 2
-    @test length(m.u1) == 2
-    @test length(m.s1) == 2
+    @test length(m.a0_post) == 2
+    @test length(m.lambda0_post) == 2
+    @test length(m.mu0_post) == 2
+    @test length(m.b0_post) == 2
 end
 
 @testset "update_suffstats! (1)" begin
     rng = MersenneTwister(1)
     data = NormalData([1], [1.0])
-    N, G, K0, v0, r0, u0, s0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
-    m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
+    N, G, K0, a0, lambda0, mu0, b0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
+    m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
-    @test m.v1[1][1] ≈ 2.0
-    @test m.v1[2][1] ≈ 1.0
-    @test m.r1[1][1] ≈ 2.0
-    @test m.r1[2][1] ≈ 1.0
-    @test m.u1[1][1] ≈ 0.5
-    @test m.u1[2][1] ≈ 0.0
-    @test m.s1[1][1] ≈ 1.5
-    @test m.s1[2][1] ≈ 1.0
+    @test m.a0_post[1][1] ≈ 2.0
+    @test m.a0_post[2][1] ≈ 1.0
+    @test m.lambda0_post[1][1] ≈ 2.0
+    @test m.lambda0_post[2][1] ≈ 1.0
+    @test m.mu0_post[1][1] ≈ 0.5
+    @test m.mu0_post[2][1] ≈ 0.0
+    @test m.b0_post[1][1] ≈ 1.5
+    @test m.b0_post[2][1] ≈ 1.0
 end
 
 @testset "update_suffstats! (2)" begin
     rng = MersenneTwister(1)
     data = NormalData([1], [1.0])
-    N, G, K0, v0, r0, u0, s0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
-    m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
+    N, G, K0, a0, lambda0, mu0, b0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
+    m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
     ANOVADDPTest.update_suffstats!(m, data, 1, 1, 2)
-    @test m.v1[1][1] ≈ 1.0
-    @test m.v1[2][1] ≈ 2.0
-    @test m.r1[1][1] ≈ 1.0
-    @test m.r1[2][1] ≈ 2.0
-    @test m.u1[1][1] ≈ 0.0
-    @test m.u1[2][1] ≈ 0.5
-    @test m.s1[1][1] ≈ 1.0
-    @test m.s1[2][1] ≈ 1.5
+    @test m.a0_post[1][1] ≈ 1.0
+    @test m.a0_post[2][1] ≈ 2.0
+    @test m.lambda0_post[1][1] ≈ 1.0
+    @test m.lambda0_post[2][1] ≈ 2.0
+    @test m.mu0_post[1][1] ≈ 0.0
+    @test m.mu0_post[2][1] ≈ 0.5
+    @test m.b0_post[1][1] ≈ 1.0
+    @test m.b0_post[2][1] ≈ 1.5
 end
 
 @testset "logpredlik (empty clusters)" begin
     rng = MersenneTwister(1)
     data = NormalData([1], [1.0])
-    N, G, K0, v0, r0, u0, s0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
-    m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
+    N, G, K0, a0, lambda0, mu0, b0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
+    m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
     @test ANOVADDPTest.logpredlik(m, data, 1, first(passive_clusters(m))) ≈ (
         0.5 * 1.0 * log(1.0) -
@@ -91,14 +91,13 @@ end
 @testset "logpredlik (non-empty clusters)" begin
     rng = MersenneTwister(1)
     data = NormalData([1, 1], [1.0, 0.0])
-    N, G, K0, v0, r0, u0, s0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
-    m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
+    N, G, K0, a0, lambda0, mu0, b0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
+    m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
-    @test m.v1[1][1] ≈ 3.0
-    @test m.r1[1][1] ≈ 3.0
-    @test m.u1[1][1] ≈ 1/3
-    @test m.s1[1][1] ≈ 5/3
-
+    @test m.a0_post[1][1] ≈ 3.0
+    @test m.lambda0_post[1][1] ≈ 3.0
+    @test m.mu0_post[1][1] ≈ 1/3
+    @test m.b0_post[1][1] ≈ 5/3
     @test ANOVADDPTest.logpredlik(m, data, 2, 1) ≈ (
         0.5 * 2 * log(1.5) -
         0.5 * 3 * log(5/3) +
@@ -112,8 +111,8 @@ end
 @testset "update! (1)" begin
     rng = MersenneTwister(1)
     data = NormalData([1, 1], [1.0, 0.0])
-    N, G, K0, v0, r0, u0, s0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
-    m = NormalDDP(rng, N, G; K0, v0, r0, u0, s0)
+    N, G, K0, a0, lambda0, mu0, b0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
+    m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     update!(rng, m, data)
 end
 
@@ -210,6 +209,6 @@ end
     @test all(mode(chain.gamma) .== [true, true, true])
 end
 
-# # Note:
-# # Remember that you can use denserank(x) for converting
-# # vector codes to numeric codes
+## Note:
+## Remember that you can use denserank(x) for converting
+## vector codes to numeric codes

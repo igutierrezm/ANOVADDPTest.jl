@@ -15,12 +15,12 @@ function anova_bnp_normal(
     seed::Int = 1, # taken from rstan::stan()
     n::Int = 50, # taken from ggplot2::geom_density(),
     rho::Float64 = 1.0,
-    a0::Float64 = 1.0,
+    a::Float64 = 1.0,
+    b::Float64 = 1.0,
+    mu0::Float64 = 0.0,
+    lambda0::Float64 = 1.0,
+    a0::Float64 = 2.0,
     b0::Float64 = 1.0,
-    v0::Float64 = 2.0,
-    r0::Float64 = 1.0,
-    u0::Float64 = 0.0,
-    s0::Float64 = 1.0,
     lb = minimum(y) - 0.5 * std(y),
     ub = minimum(y) + 0.5 * std(y)
 )
@@ -36,7 +36,7 @@ function anova_bnp_normal(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = NormalDDP(rng, N, G; a0, b0, v0, r0, u0, s0, rho = rho)
+    m = NormalDDP(rng, N, G; a, b, mu0, lambda0, a0, b0, rho)
 
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);

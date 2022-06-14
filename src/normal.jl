@@ -14,14 +14,14 @@ NormalData(x::Vector{Int}, y::Vector{Float64}) = NormalData(x[:, :], y)
 
 struct NormalDDP <: AbstractDPM
     parent::DPM
-    v0::Float64 # TODO: Replace theta hyperparameters by thetaprior::NormalInverseGamma{Float64}
-    r0::Float64
-    u0::Float64
-    s0::Float64
-    v1::Vector{Vector{Float64}}
-    r1::Vector{Vector{Float64}}
-    u1::Vector{Vector{Float64}}
-    s1::Vector{Vector{Float64}}
+    mu0::Float64
+    lambda0::Float64
+    a0::Float64
+    b0::Float64
+    mu0_post::Vector{Vector{Float64}}
+    lambda0_post::Vector{Vector{Float64}}
+    a0_post::Vector{Vector{Float64}}
+    b0_post::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
     G::Int
@@ -30,22 +30,22 @@ struct NormalDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 5,
-        a0::Float64 = 2.0, # TODO: Replace a0, b0 by alphaprior = Gamma(2.0, 0.25) (I must update this in DPMNeal3.jl first)
-        b0::Float64 = 4.0,
-        v0::Float64 = 2.0, # TODO: Replace (v0, r0, u0, s0) by NormalInverseGamma(u0, 1 / r0, v0, s0)
-        r0::Float64 = 1.0,
-        u0::Float64 = 0.0,
-        s0::Float64 = 1.0,
+        a::Float64 = 2.0,
+        b::Float64 = 4.0,
+        mu0::Float64 = 0.0,
+        lambda0::Float64 = 1.0,
+        a0::Float64 = 2.0,
+        b0::Float64 = 1.0,
         rho::Float64 = 1.0,
     )
-        parent = DPM(rng, N; K0, a0, b0)
-        v1 = [v0 * ones(G)]
-        r1 = [r0 * ones(G)]
-        u1 = [u0 * ones(G)]
-        s1 = [s0 * ones(G)]
+        parent = DPM(rng, N; K0, a0 = a, b0 = b)
+        mu0_post = [mu0 * ones(G)]
+        lambda0_post = [lambda0 * ones(G)]
+        a0_post = [a0 * ones(G)]
+        b0_post = [b0 * ones(G)]
         gammaprior = Womack(G - 1, rho)
         gamma = ones(Bool, G)
-        new(parent, v0, r0, u0, s0, v1, r1, u1, s1, gammaprior, gamma, G)
+        new(parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post, a0_post, b0_post, gammaprior, gamma, G)
     end
 end
 
@@ -54,57 +54,57 @@ function parent_dpm(m::NormalDDP)
 end
 
 function add_cluster!(m::NormalDDP)
-    @extract m : G v0 r0 u0 s0 v1 r1 u1 s1
-    push!(v1, v0 * ones(G))
-    push!(r1, r0 * ones(G))
-    push!(u1, u0 * ones(G))
-    push!(s1, s0 * ones(G))
+    @extract m : G mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
+    push!(mu0_post, mu0 * ones(G))
+    push!(lambda0_post, lambda0 * ones(G))
+    push!(a0_post, a0 * ones(G))
+    push!(b0_post, b0 * ones(G))
 end
 
 function update_suffstats!(m::NormalDDP, data)
-    @extract m : v0 r0 u0 s0 v1 r1 u1 s1 gamma
+    @extract m : mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post gamma
     @extract data : y x
     d = cluster_labels(m)
-    while length(v1) < cluster_capacity(m)
+    while length(a0_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     for k in active_clusters(m)
-        v1[k] .= v0
-        r1[k] .= r0
-        u1[k] .= u0
-        s1[k] .= s0
+        mu0_post[k] .= mu0
+        lambda0_post[k] .= lambda0
+        a0_post[k] .= a0
+        b0_post[k] .= b0
     end
     for i = 1:length(y)
         zi = gamma[x[i]] ? x[i] : 1
         di = d[i]
-        v1[di][zi] += 1
-        rm = r1[di][zi] += 1
-        um = u1[di][zi] = ((rm - 1) * u1[di][zi] + y[i]) / rm
-        s1[di][zi] += (rm / (rm - 1)) * (y[i] - um)^2
+        ld = lambda0_post[di][zi] += 1
+        mu = mu0_post[di][zi] = ((ld - 1) * mu0_post[di][zi] + y[i]) / ld
+        a0_post[di][zi] += 1
+        b0_post[di][zi] += (ld / (ld - 1)) * (y[i] - mu)^2
     end
 end
 
 function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : v1 r1 u1 s1 gamma
-    while length(v1) < cluster_capacity(m)
+    @extract m : mu0_post lambda0_post a0_post b0_post gamma
+    while length(a0_post) < cluster_capacity(m)
         add_cluster!(m)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group di/k2
-    v1[k2][zi] += 1
-    rm = r1[k2][zi] += 1
-    um = u1[k2][zi] = ((rm - 1) * u1[k2][zi] + y[i]) / rm
-    s1[k2][zi] += (rm / (rm - 1)) * (y[i] - um)^2
+    a0_post[k2][zi] += 1
+    ld = lambda0_post[k2][zi] += 1
+    mu = mu0_post[k2][zi] = ((ld - 1) * mu0_post[k2][zi] + y[i]) / ld
+    b0_post[k2][zi] += (ld / (ld - 1)) * (y[i] - mu)^2
 
     # Modify cluster/group di/k1
-    rm = r1[k1][zi]
-    um = u1[k1][zi]
-    s1[k1][zi] -= (rm / (rm - 1)) * (y[i] - um)^2
-    u1[k1][zi]  = (rm * u1[k1][zi] - y[i]) / (rm - 1)
-    v1[k1][zi] -= 1
-    r1[k1][zi] -= 1
+    ld = lambda0_post[k1][zi]
+    mu = mu0_post[k1][zi]
+    b0_post[k1][zi] -= (ld / (ld - 1)) * (y[i] - mu)^2
+    mu0_post[k1][zi] = (ld * mu0_post[k1][zi] - y[i]) / (ld - 1)
+    a0_post[k1][zi] -= 1
+    lambda0_post[k1][zi] -= 1
 end
 
 function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
@@ -140,7 +140,7 @@ function update_hyperpars!(rng::AbstractRNG, m::NormalDDP, data)
 end
 
 function logpredlik(m::NormalDDP, data, i::Int, k::Int)
-    @extract m : v1 r1 u1 s1 gamma
+    @extract m : mu0_post lambda0_post a0_post b0_post gamma
     @extract data : y x
     d = cluster_labels(m)
     yi = y[i]
@@ -148,19 +148,19 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     if di == k
-        v̄1 = v1[k][zi]
-        r̄1 = r1[k][zi]
-        ū1 = u1[k][zi]
-        s̄1 = s1[k][zi]
+        v̄1 = a0_post[k][zi]
+        r̄1 = lambda0_post[k][zi]
+        ū1 = mu0_post[k][zi]
+        s̄1 = b0_post[k][zi]
         v̄0 = v̄1 - 1
         r̄0 = r̄1 - 1
         ū0 = (r̄1 * ū1 - yi) / r̄0
         s̄0 = s̄1 - (r̄1 / r̄0) * (yi - ū1)^2
     else
-        v̄0 = v1[k][zi]
-        r̄0 = r1[k][zi]
-        ū0 = u1[k][zi]
-        s̄0 = s1[k][zi]
+        v̄0 = a0_post[k][zi]
+        r̄0 = lambda0_post[k][zi]
+        ū0 = mu0_post[k][zi]
+        s̄0 = b0_post[k][zi]
         v̄1 = v̄0 + 1
         r̄1 = r̄0 + 1
         ū1 = (r̄0 * ū0 + yi) / r̄1
@@ -168,11 +168,11 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
     end
 
     if iszero(r̄0)
-        return - 0.5v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
+        return - 0.5 * v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
     else
         return (
-            0.5v̄0 * log(s̄0) -
-            0.5v̄1 * log(s̄1) +
+            0.5 * v̄0 * log(s̄0) -
+            0.5 * v̄1 * log(s̄1) +
             loggamma(v̄1 / 2) -
             loggamma(v̄0 / 2) +
             0.5 * log(r̄0 / r̄1) -
@@ -182,14 +182,14 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
 end
 
 function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
-    @extract m : v1 r1 u1 s1 gamma
+    @extract m : mu0_post lambda0_post a0_post b0_post gamma
     @extract predict : y x
     yi = y[i]
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
-    v̄0 = v1[k][zi]
-    r̄0 = r1[k][zi]
-    ū0 = u1[k][zi]
-    s̄0 = s1[k][zi]
+    v̄0 = a0_post[k][zi]
+    r̄0 = lambda0_post[k][zi]
+    ū0 = mu0_post[k][zi]
+    s̄0 = b0_post[k][zi]
     v̄1 = v̄0 + 1
     r̄1 = r̄0 + 1
     ū1 = (r̄0 * ū0 + yi) / r̄1
@@ -199,8 +199,8 @@ function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
         return - 0.5v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
     else
         return (
-            0.5v̄0 * log(s̄0) -
-            0.5v̄1 * log(s̄1) +
+            0.5 * v̄0 * log(s̄0) -
+            0.5 * v̄1 * log(s̄1) +
             loggamma(v̄1 / 2) -
             loggamma(v̄0 / 2) +
             0.5 * log(r̄0 / r̄1) -
@@ -210,13 +210,13 @@ function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
 end
 
 function logmglik(m::NormalDDP, j::Int, k::Int)
-    @extract m : v0 v1 r0 r1 s0 s1
+    @extract m : lambda0 a0 b0 lambda0_post a0_post b0_post
     return(
-        0.5v0 * log(s0) -
-        0.5v1[k][j] * log(s1[k][j]) +
-        loggamma(v1[k][j] / 2) -
-        loggamma(v0 / 2) +
-        0.5 * log(r0 / r1[k][j]) -
-        0.5 * log(π) * (r1[k][j] - r0)
+        0.5 * a0 * log(b0) -
+        0.5 * a0_post[k][j] * log(b0_post[k][j]) +
+        loggamma(a0_post[k][j] / 2) -
+        loggamma(a0 / 2) +
+        0.5 * log(lambda0 / lambda0_post[k][j]) -
+        0.5 * log(π) * (lambda0_post[k][j] - lambda0)
     )
 end

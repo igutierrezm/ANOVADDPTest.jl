@@ -26,13 +26,13 @@ struct BernoulliDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 1,
-        a0::Float64 = 2.0,
-        b0::Float64 = 4.0,
+        a::Float64 = 2.0,
+        b::Float64 = 4.0,
         a2::Float64 = 2.0,
         b2::Float64 = 4.0,
         rho::Float64 = 1.0,
     )
-        parent = DPM(rng, N; K0, a0 = a0, b0 = b0)
+        parent = DPM(rng, N; K0, a0 = a, b0 = b)
         a2_post = [a2 * ones(G)]
         b2_post = [b2 * ones(G)]
         gammaprior = Womack(G - 1, rho)

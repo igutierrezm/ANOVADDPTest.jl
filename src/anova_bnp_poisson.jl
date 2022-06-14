@@ -24,8 +24,8 @@ function anova_bnp_poisson(
     warmup::Int = 2000, # taken from rstan::stan()
     seed::Int = 1, # taken from rstan::stan()
     rho::Float64 = 1.0,
-    a0::Float64 = 2.0,
-    b0::Float64 = 4.0,
+    a::Float64 = 2.0,
+    b::Float64 = 4.0,
     a1::Float64 = 2.0,
     b1::Float64 = 4.0,
     lb::Int = minimum(y),
@@ -43,7 +43,7 @@ function anova_bnp_poisson(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = PoissonDDP(rng, N, G; a0 = a0, b0 = b0, a1 = a1, b1 = b1, rho = rho)
+    m = PoissonDDP(rng, N, G; a, b, a1, b1, rho)
 
     # Train the model
     ch = train(rng, m, data0, data1; iter, warmup);

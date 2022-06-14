@@ -27,13 +27,13 @@ struct PoissonDDP <: AbstractDPM
         N::Int,
         G::Int;
         K0::Int = 1,
-        a0::Float64 = 2.0,
-        b0::Float64 = 4.0,
+        a::Float64 = 2.0,
+        b::Float64 = 4.0,
         a1::Float64 = 2.0,
         b1::Float64 = 4.0,
         rho::Float64 = 1.0,
     )
-        parent = DPM(rng, N; K0, a0 = a0, b0 = b0)
+        parent = DPM(rng, N; K0, a0 = a, b0 = b)
         a1_post = [a1 * ones(Int, G)]
         b1_post = [b1 * ones(Int, G)]
         sumlogu = [zeros(G)]
@@ -77,7 +77,7 @@ end
 
 function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a1 b1 a1_post b1_post sumlogu gamma
+    @extract m : a1_post b1_post sumlogu gamma
     while length(a1_post) < cluster_capacity(m)
         add_cluster!(m)
     end
