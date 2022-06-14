@@ -31,7 +31,7 @@ end
     ANOVADDPTest.add_cluster!(m)
     @test length(m.a1_post) == 2
     @test length(m.b1_post) == 2
-    @test length(m.sumlogu) == 2
+    @test length(m.sumlogfacty) == 2
 end
 
 @testset "update_suffstats! (1)" begin
