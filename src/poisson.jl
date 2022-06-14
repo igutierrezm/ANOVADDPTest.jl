@@ -18,7 +18,7 @@ struct PoissonDDP <: AbstractDPM
     b1::Float64
     a1_post::Vector{Vector{Int}}
     b1_post::Vector{Vector{Int}}
-    sumlogu::Vector{Vector{Float64}}
+    sumlogfacty::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
     G::Int
@@ -36,10 +36,10 @@ struct PoissonDDP <: AbstractDPM
         parent = DPM(rng, N; K0, a0 = a, b0 = b)
         a1_post = [a1 * ones(Int, G)]
         b1_post = [b1 * ones(Int, G)]
-        sumlogu = [zeros(G)]
+        sumlogfacty = [zeros(G)]
         gammaprior = Womack(G - 1, rho)
         gamma = ones(Bool, G)
-        new(parent, a1, b1, a1_post, b1_post, sumlogu, gammaprior, gamma, G)
+        new(parent, a1, b1, a1_post, b1_post, sumlogfacty, gammaprior, gamma, G)
     end
 end
 
@@ -48,15 +48,15 @@ function parent_dpm(m::PoissonDDP)
 end
 
 function add_cluster!(m::PoissonDDP)
-    @extract m : G a1 b1 a1_post b1_post sumlogu
+    @extract m : G a1 b1 a1_post b1_post sumlogfacty
     push!(a1_post, a1 * ones(G))
     push!(b1_post, b1 * ones(G))
-    push!(sumlogu, zeros(G))
+    push!(sumlogfacty, zeros(G))
 end
 
 function update_suffstats!(m::PoissonDDP, data)
     @extract data : y x
-    @extract m : a1 b1 a1_post b1_post sumlogu gamma
+    @extract m : a1 b1 a1_post b1_post sumlogfacty gamma
     d = cluster_labels(m)
     while length(a1_post) < cluster_capacity(m)
         add_cluster!(m)
@@ -64,12 +64,12 @@ function update_suffstats!(m::PoissonDDP, data)
     for k in active_clusters(m)
         a1_post[k] .= a1
         b1_post[k] .= b1
-        sumlogu[k] .= 0.0
+        sumlogfacty[k] .= 0.0
     end
     for i = 1:length(y)
         di = d[i]
         zi = iszero(gamma[x[i]]) ? 1 : x[i]
-        sumlogu[di][zi] += logfactorial(y[i])
+        sumlogfacty[di][zi] += logfactorial(y[i])
         a1_post[di][zi] += y[i]
         b1_post[di][zi] += 1
     end
@@ -77,7 +77,7 @@ end
 
 function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a1_post b1_post sumlogu gamma
+    @extract m : a1_post b1_post sumlogfacty gamma
     while length(a1_post) < cluster_capacity(m)
         add_cluster!(m)
     end
@@ -86,12 +86,12 @@ function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     # Modify cluster/group k2/zi
     a1_post[k2][zi] += y[i]
     b1_post[k2][zi] += 1
-    sumlogu[k2][zi] += logfactorial(y[i])
+    sumlogfacty[k2][zi] += logfactorial(y[i])
 
     # Modify cluster/group k1/zi
     a1_post[k1][zi] -= y[i]
     b1_post[k1][zi] -= 1
-    sumlogu[k1][zi] -= logfactorial(y[i])
+    sumlogfacty[k1][zi] -= logfactorial(y[i])
 end
 
 function logpredlik(m::PoissonDDP, data, i::Int, k::Int)
@@ -114,11 +114,11 @@ function logpredlik(m::PoissonDDP, train, predict, i::Int, k::Int)
 end
 
 function logmglik(m::PoissonDDP, j::Int, k::Int)
-    @extract m : a1 b1 a1_post b1_post sumlogu
+    @extract m : a1 b1 a1_post b1_post sumlogfacty
     return (
         a1 * log(b1) - a1_post[k][j] * log(b1_post[k][j]) +
         loggamma(a1_post[k][j]) - loggamma(a1) -
-        sumlogu[k][j]
+        sumlogfacty[k][j]
     )
 end
 
