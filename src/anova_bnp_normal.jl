@@ -1,3 +1,21 @@
+# using Revise
+# using ANOVADDPTest
+# using StatsModels
+# using Statistics
+# using DataFrames
+# using Distributions
+# using Random
+
+# # Simulate sample
+# function simulate_sample_poisson(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     y = rand(rng, Poisson(1.0), N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end
+
 struct anova_bnp_fitted
     group_codes::DataFrame
     group_probs::DataFrame
@@ -21,9 +39,18 @@ function anova_bnp_normal(
     lambda0::Float64 = 1.0,
     a0::Float64 = 2.0,
     b0::Float64 = 1.0,
-    lb = minimum(y) - 3 * std(y),
-    ub = minimum(y) + 3 * std(y)
+    lb = minimum(y) - std(y),
+    ub = maximum(y) + std(y),
+    standardize_y = false
 )
+    # Standardize the data if requested
+    if standardize_y == true
+        my0, sy0 = mean_and_std(y)
+        lb = (lb - my0) / sy0
+        ub = (ub - my0) / sy0
+        @. y = (y - my0) / sy0
+    end
+
     # Set data for training
     data0 = NormalData(X, y)
 
@@ -40,6 +67,13 @@ function anova_bnp_normal(
 
     # Train the model
     ch = train(rng, model, data0, data1; iter, warmup);
+
+    # Unroll the standardization
+    if standardize_y == true
+        @. y = my0 + sy0 * y
+        @. ch.f = ch.f ./ sy0
+        @. data1.y = my0 + sy0 * data1.y
+    end
 
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
