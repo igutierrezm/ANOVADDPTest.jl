@@ -48,10 +48,10 @@ function anova_bnp_normal(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = NormalDDP(rng, N, G)
+    model = NormalDDP(rng, N, G)
 
     # Train the model
-    ch = train(rng, m, data0, data1; iter, warmup);
+    ch = train(rng, model, data0, data1; iter, warmup);
     return ch
 end
 data1 = anova_bnp_normal(formula, data);

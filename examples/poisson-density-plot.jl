@@ -6,7 +6,7 @@ using Random
 
 function generate_plot_poisson(N, G, distinct_groups)
     rng = MersenneTwister(1)
-    m = PoissonDDP(rng, N, G)
+    model = PoissonDDP(rng, N, G)
     x = rand(rng, 1:G, N)
     y = rand(rng, Poisson(2), N)
     for i in 1:N
@@ -14,7 +14,7 @@ function generate_plot_poisson(N, G, distinct_groups)
     end
     data = PoissonData(x, y)
     pred = PoissonData(expandgrid(1:G, 0:8)...)
-    ch = train(rng, m, data, pred)
+    ch = train(rng, model, data, pred)
     df = DataFrame(x = pred.x, y = pred.y, f = mean(ch.f))
     plot(df, x = :y, y = :f, color = :x, Geom.line, Scale.color_discrete())
 end

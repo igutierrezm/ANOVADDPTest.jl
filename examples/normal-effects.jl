@@ -23,10 +23,10 @@ pred = expandgrid([1:3 for _ in 1:D]...,  range(-2.0, stop = 2.0, length = 50));
 pred = NormalData(hcat(pred[1:D]...), pred[D+1]);
 
 # Create the model
-m = NormalDDP(rng, N, length(data.Xunique));
+model = NormalDDP(rng, N, length(data.Xunique));
 
 # Fit the model
-ch = train(rng, m, data, pred);
+ch = train(rng, model, data, pred);
 
 # Compute the effects
 simple_effect_probabilities(ch, data)

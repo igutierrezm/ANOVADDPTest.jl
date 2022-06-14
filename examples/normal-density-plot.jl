@@ -7,7 +7,7 @@ using Random
 
 function generate_plot_normal(N, G, distinct_groups)
     rng = MersenneTwister(1)
-    m = NormalDDP(rng, N, G)
+    model = NormalDDP(rng, N, G)
     x = rand(rng, 1:G, N)
     y = randn(rng, N)
     for i in 1:N
@@ -15,7 +15,7 @@ function generate_plot_normal(N, G, distinct_groups)
     end
     data = NormalData(x, y)
     pred = NormalData(expandgrid(1:G,  range(-2.0, stop = 2.0, length = 50))...)
-    ch = train(rng, m, data, pred)
+    ch = train(rng, model, data, pred)
     df = DataFrame(x = pred.x, y = pred.y, f = mean(ch.f))
     return plot(df, x = :y, y = :f, color = :x, Geom.line, Scale.color_discrete())
 end

@@ -6,7 +6,7 @@ using Random
 
 function generate_plot_bernoulli(N, G, signigicant_groups)
     rng = MersenneTwister(1)
-    m = BernoulliDDP(rng, N, G)
+    model = BernoulliDDP(rng, N, G)
     x = rand(rng, 1:G, N)
     y = rand(rng, Bernoulli(0.25), N)
     for i = 1:N
@@ -14,7 +14,7 @@ function generate_plot_bernoulli(N, G, signigicant_groups)
     end
     data = BernoulliData(x, y)
     pred = BernoulliData(expandgrid(1:G, false:true)...)
-    ch = train(rng, m, data, pred)
+    ch = train(rng, model, data, pred)
     df = DataFrame(x = pred.x, y = pred.y, f = mean(ch.f))
     plot(df, x = :y, y = :f, color = :x, Geom.line, Scale.color_discrete())
 end
