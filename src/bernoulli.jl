@@ -41,24 +41,24 @@ struct BernoulliDDP <: AbstractDPM
     end
 end
 
-function parent_dpm(m::BernoulliDDP)
-    m.parent
+function parent_dpm(model::BernoulliDDP)
+    model.parent
 end
 
-function add_cluster!(m::BernoulliDDP)
-    @extract m : a2 b2 a2_post b2_post G
+function add_cluster!(model::BernoulliDDP)
+    @extract model : a2 b2 a2_post b2_post G
     push!(a2_post, a2 * ones(Int, G))
     push!(b2_post, b2 * ones(Int, G))
 end
 
-function update_suffstats!(m::BernoulliDDP, data)
+function update_suffstats!(model::BernoulliDDP, data)
     @extract data : y x
-    @extract m : a2 b2 a2_post b2_post gamma
-    d = cluster_labels(m)
-    while length(a2_post) < cluster_capacity(m)
-        add_cluster!(m)
+    @extract model : a2 b2 a2_post b2_post gamma
+    d = cluster_labels(model)
+    while length(a2_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
-    for k in active_clusters(m)
+    for k in active_clusters(model)
         a2_post[k] .= a2
         b2_post[k] .= b2
     end
@@ -70,11 +70,11 @@ function update_suffstats!(m::BernoulliDDP, data)
     end
 end
 
-function update_suffstats!(m::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
+function update_suffstats!(model::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a2_post b2_post gamma
-    while length(a2_post) < cluster_capacity(m)
-        add_cluster!(m)
+    @extract model : a2_post b2_post gamma
+    while length(a2_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
@@ -87,10 +87,10 @@ function update_suffstats!(m::BernoulliDDP, data, i::Int, k1::Int, k2::Int)
     b2_post[k1][zi] -= 1 - y[i]
 end
 
-function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
+function logpredlik(model::BernoulliDDP, data, i::Int, k::Int)
     @extract data : y x
-    @extract m : a2_post b2_post gamma
-    d = cluster_labels(m)
+    @extract model : a2_post b2_post gamma
+    d = cluster_labels(model)
     j = iszero(gamma[x[i]]) ? 1 : x[i]
     a1kj = a2_post[k][j] - (d[i] == k) * y[i]
     b1kj = b2_post[k][j] - (d[i] == k) * (1 - y[i])
@@ -101,9 +101,9 @@ function logpredlik(m::BernoulliDDP, data, i::Int, k::Int)
     end
 end
 
-function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
+function logpredlik(model::BernoulliDDP, train, predict, i::Int, k::Int)
     @extract predict : y x
-    @extract m : a2_post b2_post gamma
+    @extract model : a2_post b2_post gamma
     j = iszero(gamma[x[i]]) ? 1 : x[i]
     a1kj = a2_post[k][j]
     b1kj = b2_post[k][j]
@@ -114,31 +114,31 @@ function logpredlik(m::BernoulliDDP, train, predict, i::Int, k::Int)
     end
 end
 
-function logmglik(m::BernoulliDDP, j::Int, k::Int)
-    @extract m : a2 b2 a2_post b2_post
+function logmglik(model::BernoulliDDP, j::Int, k::Int)
+    @extract model : a2 b2 a2_post b2_post
     return logbeta(a2_post[k][j], b2_post[k][j]) - logbeta(a2, b2)
 end
 
-function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
-    @extract m : gammaprior gamma
-    A = active_clusters(m)
+function update_gamma!(rng::AbstractRNG, model::BernoulliDDP, data)
+    @extract model : gammaprior gamma
+    A = active_clusters(model)
 
     # Resample gamma[g], given the other gamma's
     for g = 2:length(gamma)
         # log-odds (numerator)
         gamma[g] = 1
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_num = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1, g)
-            log_num += logmglik(m, j, k)
+            log_num += logmglik(model, j, k)
         end
 
         # log-odds (denominator)
         gamma[g] = 0
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_den = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1)
-            log_den += logmglik(m, j, k)
+            log_den += logmglik(model, j, k)
         end
 
         # log-odds and new gamma[g]
@@ -147,6 +147,6 @@ function update_gamma!(rng::AbstractRNG, m::BernoulliDDP, data)
     end
 end
 
-function update_hyperpars!(rng::AbstractRNG, m::BernoulliDDP, data)
-    update_gamma!(rng, m, data)
+function update_hyperpars!(rng::AbstractRNG, model::BernoulliDDP, data)
+    update_gamma!(rng, model, data)
 end

@@ -43,10 +43,10 @@ function anova_bnp_poisson(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = PoissonDDP(rng, N, G; a, b, a1, b1, rho)
+    model = PoissonDDP(rng, N, G; a, b, a1, b1, rho)
 
     # Train the model
-    ch = train(rng, m, data0, data1; iter, warmup);
+    ch = train(rng, model, data0, data1; iter, warmup);
 
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);

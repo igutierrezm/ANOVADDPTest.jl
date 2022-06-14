@@ -52,26 +52,26 @@ struct NormalDDP <: AbstractDPM
     end
 end
 
-function parent_dpm(m::NormalDDP)
-    m.parent
+function parent_dpm(model::NormalDDP)
+    model.parent
 end
 
-function add_cluster!(m::NormalDDP)
-    @extract m : G mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
+function add_cluster!(model::NormalDDP)
+    @extract model : G mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
     push!(mu0_post, mu0 * ones(G))
     push!(lambda0_post, lambda0 * ones(G))
     push!(a0_post, a0 * ones(G))
     push!(b0_post, b0 * ones(G))
 end
 
-function update_suffstats!(m::NormalDDP, data)
-    @extract m : mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post gamma
+function update_suffstats!(model::NormalDDP, data)
+    @extract model : mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post gamma
     @extract data : y x
-    d = cluster_labels(m)
-    while length(a0_post) < cluster_capacity(m)
-        add_cluster!(m)
+    d = cluster_labels(model)
+    while length(a0_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
-    for k in active_clusters(m)
+    for k in active_clusters(model)
         mu0_post[k] .= mu0
         lambda0_post[k] .= lambda0
         a0_post[k] .= a0
@@ -87,11 +87,11 @@ function update_suffstats!(m::NormalDDP, data)
     end
 end
 
-function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
+function update_suffstats!(model::NormalDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : mu0_post lambda0_post a0_post b0_post gamma
-    while length(a0_post) < cluster_capacity(m)
-        add_cluster!(m)
+    @extract model : mu0_post lambda0_post a0_post b0_post gamma
+    while length(a0_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
@@ -110,26 +110,26 @@ function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
     lambda0_post[k1][zi] -= 1
 end
 
-function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
-    @extract m : gammaprior gamma
-    A = active_clusters(m)
+function update_gamma!(rng::AbstractRNG, model::NormalDDP, data)
+    @extract model : gammaprior gamma
+    A = active_clusters(model)
 
     # Resample gamma[g], given the other gamma's
     for g = 2:length(gamma)
         # log-odds (numerator)
         gamma[g] = 1
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_num = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1, g)
-            log_num += logmglik(m, j, k)
+            log_num += logmglik(model, j, k)
         end
 
         # log-odds (denominator)
         gamma[g] = 0
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_den = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1)
-            log_den += logmglik(m, j, k)
+            log_den += logmglik(model, j, k)
         end
 
         # log-odds and new gamma[g]
@@ -138,14 +138,14 @@ function update_gamma!(rng::AbstractRNG, m::NormalDDP, data)
     end
 end
 
-function update_hyperpars!(rng::AbstractRNG, m::NormalDDP, data)
-    update_gamma!(rng, m, data)
+function update_hyperpars!(rng::AbstractRNG, model::NormalDDP, data)
+    update_gamma!(rng, model, data)
 end
 
-function logpredlik(m::NormalDDP, data, i::Int, k::Int)
-    @extract m : mu0_post lambda0_post a0_post b0_post gamma
+function logpredlik(model::NormalDDP, data, i::Int, k::Int)
+    @extract model : mu0_post lambda0_post a0_post b0_post gamma
     @extract data : y x
-    d = cluster_labels(m)
+    d = cluster_labels(model)
     yi = y[i]
     di = d[i]
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
@@ -184,8 +184,8 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
     # end
 end
 
-function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
-    @extract m : mu0_post lambda0_post a0_post b0_post gamma
+function logpredlik(model::NormalDDP, train, predict, i::Int, k::Int)
+    @extract model : mu0_post lambda0_post a0_post b0_post gamma
     @extract predict : y x
     yi = y[i]
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
@@ -212,8 +212,8 @@ function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
     # end
 end
 
-function logmglik(m::NormalDDP, j::Int, k::Int)
-    @extract m : lambda0 a0 b0 lambda0_post a0_post b0_post
+function logmglik(model::NormalDDP, j::Int, k::Int)
+    @extract model : lambda0 a0 b0 lambda0_post a0_post b0_post
     return(
         a0 * log(b0) -
         a0_post[k][j] * log(b0_post[k][j]) +

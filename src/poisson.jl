@@ -43,25 +43,25 @@ struct PoissonDDP <: AbstractDPM
     end
 end
 
-function parent_dpm(m::PoissonDDP)
-    m.parent
+function parent_dpm(model::PoissonDDP)
+    model.parent
 end
 
-function add_cluster!(m::PoissonDDP)
-    @extract m : G a1 b1 a1_post b1_post sumlogfacty
+function add_cluster!(model::PoissonDDP)
+    @extract model : G a1 b1 a1_post b1_post sumlogfacty
     push!(a1_post, a1 * ones(G))
     push!(b1_post, b1 * ones(G))
     push!(sumlogfacty, zeros(G))
 end
 
-function update_suffstats!(m::PoissonDDP, data)
+function update_suffstats!(model::PoissonDDP, data)
     @extract data : y x
-    @extract m : a1 b1 a1_post b1_post sumlogfacty gamma
-    d = cluster_labels(m)
-    while length(a1_post) < cluster_capacity(m)
-        add_cluster!(m)
+    @extract model : a1 b1 a1_post b1_post sumlogfacty gamma
+    d = cluster_labels(model)
+    while length(a1_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
-    for k in active_clusters(m)
+    for k in active_clusters(model)
         a1_post[k] .= a1
         b1_post[k] .= b1
         sumlogfacty[k] .= 0.0
@@ -75,11 +75,11 @@ function update_suffstats!(m::PoissonDDP, data)
     end
 end
 
-function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
+function update_suffstats!(model::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     @extract data : y x
-    @extract m : a1_post b1_post sumlogfacty gamma
-    while length(a1_post) < cluster_capacity(m)
-        add_cluster!(m)
+    @extract model : a1_post b1_post sumlogfacty gamma
+    while length(a1_post) < cluster_capacity(model)
+        add_cluster!(model)
     end
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
@@ -94,9 +94,9 @@ function update_suffstats!(m::PoissonDDP, data, i::Int, k1::Int, k2::Int)
     sumlogfacty[k1][zi] -= logfactorial(y[i])
 end
 
-function logpredlik(m::PoissonDDP, data, i::Int, k::Int)
-    d = cluster_labels(m)
-    @extract m : a1_post b1_post gamma
+function logpredlik(model::PoissonDDP, data, i::Int, k::Int)
+    d = cluster_labels(model)
+    @extract model : a1_post b1_post gamma
     @extract data : y x
     j = iszero(gamma[x[i]]) ? 1 : x[i]
     a1kj = a1_post[k][j] - (d[i] == k) * y[i]
@@ -104,8 +104,8 @@ function logpredlik(m::PoissonDDP, data, i::Int, k::Int)
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
 end
 
-function logpredlik(m::PoissonDDP, train, predict, i::Int, k::Int)
-    @extract m : a1_post b1_post gamma
+function logpredlik(model::PoissonDDP, train, predict, i::Int, k::Int)
+    @extract model : a1_post b1_post gamma
     @extract predict : y x
     j = iszero(gamma[x[i]]) ? 1 : x[i]
     a1kj = a1_post[k][j]
@@ -113,8 +113,8 @@ function logpredlik(m::PoissonDDP, train, predict, i::Int, k::Int)
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i])
 end
 
-function logmglik(m::PoissonDDP, j::Int, k::Int)
-    @extract m : a1 b1 a1_post b1_post sumlogfacty
+function logmglik(model::PoissonDDP, j::Int, k::Int)
+    @extract model : a1 b1 a1_post b1_post sumlogfacty
     return (
         a1 * log(b1) - a1_post[k][j] * log(b1_post[k][j]) +
         loggamma(a1_post[k][j]) - loggamma(a1) -
@@ -122,26 +122,26 @@ function logmglik(m::PoissonDDP, j::Int, k::Int)
     )
 end
 
-function update_gamma!(rng::AbstractRNG, m::PoissonDDP, data)
-    @extract m : gammaprior gamma
-    A = active_clusters(m)
+function update_gamma!(rng::AbstractRNG, model::PoissonDDP, data)
+    @extract model : gammaprior gamma
+    A = active_clusters(model)
 
     # Resample gamma[g], given the other gamma's
     for g = 2:length(gamma)
         # log-odds (numerator)
         gamma[g] = 1
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_num = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1, g)
-            log_num += logmglik(m, j, k)
+            log_num += logmglik(model, j, k)
         end
 
         # log-odds (denominator)
         gamma[g] = 0
-        update_suffstats!(m, data)
+        update_suffstats!(model, data)
         log_den = logpdf(gammaprior, gamma[2:end])
         for k ∈ A, j ∈ (1)
-            log_den += logmglik(m, j, k)
+            log_den += logmglik(model, j, k)
         end
 
         # log-odds and new gamma[g]
@@ -150,8 +150,8 @@ function update_gamma!(rng::AbstractRNG, m::PoissonDDP, data)
     end
 end
 
-function update_hyperpars!(rng::AbstractRNG, m::PoissonDDP, data)
-    update_gamma!(rng, m, data)
+function update_hyperpars!(rng::AbstractRNG, model::PoissonDDP, data)
+    update_gamma!(rng, model, data)
 end
 
 # Tõnu Kollo (tonu.kollo@ut.ee) University of Tartu, Tartu, Estonia

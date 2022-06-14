@@ -36,10 +36,10 @@ function anova_bnp_normal(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = NormalDDP(rng, N, G; a, b, mu0, lambda0, a0, b0, rho)
+    model = NormalDDP(rng, N, G; a, b, mu0, lambda0, a0, b0, rho)
 
     # Train the model
-    ch = train(rng, m, data0, data1; iter, warmup);
+    ch = train(rng, model, data0, data1; iter, warmup);
 
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);

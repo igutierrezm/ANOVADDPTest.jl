@@ -1,37 +1,37 @@
 function train(
     rng, 
-    m::AbstractDPM, 
+    model::AbstractDPM, 
     train, 
     predict; 
     iter = 2000, 
     warmup = iter ÷ 2, 
     thin = 1
 )
-    gammachain = [zeros(Bool, m.G) for _ = 1:(iter - warmup) ÷ thin]
+    gammachain = [zeros(Bool, model.G) for _ = 1:(iter - warmup) ÷ thin]
     fchain = [zeros(length(predict.y)) for _ = 1:(iter - warmup) ÷ thin]
     for t in 1:iter
-        update!(rng, m, train)
+        update!(rng, model, train)
         if t > warmup && ((t - warmup) % thin == 0)
             t0 = (t - warmup) ÷ thin
-            gammachain[t0] = m.gamma[:]
+            gammachain[t0] = model.gamma[:]
             for i = 1:length(predict.y)
-                fchain[t0][i] = predlik(m, train, predict, i)
+                fchain[t0][i] = predlik(model, train, predict, i)
             end
         end
     end
     return DPM_MCMC_Chain(gammachain, fchain)
 end
 
-function predlik(m::AbstractDPM, train, predict, i::Int)
-    k̄ = first(passive_clusters(m))
-    A = active_clusters(m)
-    n = cluster_sizes(m)
+function predlik(model::AbstractDPM, train, predict, i::Int)
+    k̄ = first(passive_clusters(model))
+    A = active_clusters(model)
+    n = cluster_sizes(model)
     N = length(train.y)
-    alpha = dp_mass(m)
+    alpha = dp_mass(model)
     ans = 0.0
     for k in A
-        ans += exp(logpredlik(m, train, predict, i, k)) * n[k] / (N + alpha)
+        ans += exp(logpredlik(model, train, predict, i, k)) * n[k] / (N + alpha)
     end
-    ans += exp(logpredlik(m, train, predict, i, k̄)) * alpha / (N + alpha)
+    ans += exp(logpredlik(model, train, predict, i, k̄)) * alpha / (N + alpha)
     return(ans)
 end

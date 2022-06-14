@@ -25,10 +25,10 @@ function anova_bnp_bernoulli(
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    m = BernoulliDDP(rng, N, G; a, b, a2, b2, rho)
+    model = BernoulliDDP(rng, N, G; a, b, a2, b2, rho)
 
     # Train the model
-    ch = train(rng, m, data0, data1; iter, warmup);
+    ch = train(rng, model, data0, data1; iter, warmup);
 
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
