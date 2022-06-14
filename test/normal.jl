@@ -45,13 +45,13 @@ end
     N, G, K0, a0, lambda0, mu0, b0 = 1, 1, 1, 1.0, 1.0, 0.0, 1.0
     m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
-    @test m.a0_post[1][1] ≈ 2.0
+    @test m.a0_post[1][1] ≈ 1.5
     @test m.a0_post[2][1] ≈ 1.0
     @test m.lambda0_post[1][1] ≈ 2.0
     @test m.lambda0_post[2][1] ≈ 1.0
     @test m.mu0_post[1][1] ≈ 0.5
     @test m.mu0_post[2][1] ≈ 0.0
-    @test m.b0_post[1][1] ≈ 1.5
+    @test m.b0_post[1][1] ≈ 1.25
     @test m.b0_post[2][1] ≈ 1.0
 end
 
@@ -63,13 +63,13 @@ end
     ANOVADDPTest.update_suffstats!(m, data)
     ANOVADDPTest.update_suffstats!(m, data, 1, 1, 2)
     @test m.a0_post[1][1] ≈ 1.0
-    @test m.a0_post[2][1] ≈ 2.0
+    @test m.a0_post[2][1] ≈ 1.5
     @test m.lambda0_post[1][1] ≈ 1.0
     @test m.lambda0_post[2][1] ≈ 2.0
     @test m.mu0_post[1][1] ≈ 0.0
     @test m.mu0_post[2][1] ≈ 0.5
     @test m.b0_post[1][1] ≈ 1.0
-    @test m.b0_post[2][1] ≈ 1.5
+    @test m.b0_post[2][1] ≈ 1.25
 end
 
 @testset "logpredlik (empty clusters)" begin
@@ -79,12 +79,12 @@ end
     m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
     @test ANOVADDPTest.logpredlik(m, data, 1, first(passive_clusters(m))) ≈ (
-        0.5 * 1.0 * log(1.0) -
-        0.5 * 2.0 * log(1.5) +
-        loggamma(2.0 / 2) -
-        loggamma(1.0 / 2) +
+        1.0 * log(1.0) -
+        1.5 * log(1.25) +
+        loggamma(1.5) -
+        loggamma(1.0) +
         0.5 * log(1.0 / 2.0) -
-        0.5 * log(π)
+        0.5 * log(2π)
     )
 end
 
@@ -94,17 +94,17 @@ end
     N, G, K0, a0, lambda0, mu0, b0 = 2, 1, 1, 1.0, 1.0, 0.0, 1.0
     m = NormalDDP(rng, N, G; K0, mu0, lambda0, a0, b0)
     ANOVADDPTest.update_suffstats!(m, data)
-    @test m.a0_post[1][1] ≈ 3.0
+    @test m.a0_post[1][1] ≈ 2.0
     @test m.lambda0_post[1][1] ≈ 3.0
     @test m.mu0_post[1][1] ≈ 1/3
-    @test m.b0_post[1][1] ≈ 5/3
+    @test m.b0_post[1][1] ≈ 4/3
     @test ANOVADDPTest.logpredlik(m, data, 2, 1) ≈ (
-        0.5 * 2 * log(1.5) -
-        0.5 * 3 * log(5/3) +
-        loggamma(3/2) -
-        loggamma(2/2) +
+        1.5 * log(1.25) -
+        2.0 * log(4/3) +
+        loggamma(2.0) -
+        loggamma(1.5) +
         0.5 * log(2/3) -
-        0.5 * log(π)
+        0.5 * log(2π)
     )
 end
 

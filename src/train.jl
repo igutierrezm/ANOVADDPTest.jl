@@ -1,4 +1,12 @@
-function train(rng, m::AbstractDPM, train, predict; iter = 2000, warmup = iter ÷ 2, thin = 1)
+function train(
+    rng, 
+    m::AbstractDPM, 
+    train, 
+    predict; 
+    iter = 2000, 
+    warmup = iter ÷ 2, 
+    thin = 1
+)
     gammachain = [zeros(Bool, m.G) for _ = 1:(iter - warmup) ÷ thin]
     fchain = [zeros(length(predict.y)) for _ = 1:(iter - warmup) ÷ thin]
     for t in 1:iter
@@ -19,11 +27,11 @@ function predlik(m::AbstractDPM, train, predict, i::Int)
     A = active_clusters(m)
     n = cluster_sizes(m)
     N = length(train.y)
-    α = dp_mass(m)
+    alpha = dp_mass(m)
     ans = 0.0
     for k in A
-        ans += exp(logpredlik(m, train, predict, i, k)) * n[k] / (N + α)
+        ans += exp(logpredlik(m, train, predict, i, k)) * n[k] / (N + alpha)
     end
-    ans += exp(logpredlik(m, train, predict, i, k̄)) * α / (N + α)
+    ans += exp(logpredlik(m, train, predict, i, k̄)) * alpha / (N + alpha)
     return(ans)
 end

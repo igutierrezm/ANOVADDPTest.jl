@@ -45,7 +45,10 @@ struct NormalDDP <: AbstractDPM
         b0_post = [b0 * ones(G)]
         gammaprior = Womack(G - 1, rho)
         gamma = ones(Bool, G)
-        new(parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post, a0_post, b0_post, gammaprior, gamma, G)
+        new(
+            parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post, 
+            a0_post, b0_post, gammaprior, gamma, G
+        )
     end
 end
 
@@ -79,8 +82,8 @@ function update_suffstats!(m::NormalDDP, data)
         di = d[i]
         ld = lambda0_post[di][zi] += 1
         mu = mu0_post[di][zi] = ((ld - 1) * mu0_post[di][zi] + y[i]) / ld
-        a0_post[di][zi] += 1
-        b0_post[di][zi] += (ld / (ld - 1)) * (y[i] - mu)^2
+        a0_post[di][zi] += 1 / 2
+        b0_post[di][zi] += (ld / (ld - 1)) * (y[i] - mu)^2 / 2
     end
 end
 
@@ -93,17 +96,17 @@ function update_suffstats!(m::NormalDDP, data, i::Int, k1::Int, k2::Int)
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group di/k2
-    a0_post[k2][zi] += 1
+    a0_post[k2][zi] += 1 / 2
     ld = lambda0_post[k2][zi] += 1
     mu = mu0_post[k2][zi] = ((ld - 1) * mu0_post[k2][zi] + y[i]) / ld
-    b0_post[k2][zi] += (ld / (ld - 1)) * (y[i] - mu)^2
+    b0_post[k2][zi] += (ld / (ld - 1)) * (y[i] - mu)^2 / 2
 
     # Modify cluster/group di/k1
     ld = lambda0_post[k1][zi]
     mu = mu0_post[k1][zi]
-    b0_post[k1][zi] -= (ld / (ld - 1)) * (y[i] - mu)^2
+    b0_post[k1][zi] -= (ld / (ld - 1)) * (y[i] - mu)^2 / 2
     mu0_post[k1][zi] = (ld * mu0_post[k1][zi] - y[i]) / (ld - 1)
-    a0_post[k1][zi] -= 1
+    a0_post[k1][zi] -= 1 / 2
     lambda0_post[k1][zi] -= 1
 end
 
@@ -152,33 +155,33 @@ function logpredlik(m::NormalDDP, data, i::Int, k::Int)
         r̄1 = lambda0_post[k][zi]
         ū1 = mu0_post[k][zi]
         s̄1 = b0_post[k][zi]
-        v̄0 = v̄1 - 1
+        v̄0 = v̄1 - 1 / 2
         r̄0 = r̄1 - 1
         ū0 = (r̄1 * ū1 - yi) / r̄0
-        s̄0 = s̄1 - (r̄1 / r̄0) * (yi - ū1)^2
+        s̄0 = s̄1 - (r̄1 / r̄0) * (yi - ū1)^2 / 2
     else
         v̄0 = a0_post[k][zi]
         r̄0 = lambda0_post[k][zi]
         ū0 = mu0_post[k][zi]
         s̄0 = b0_post[k][zi]
-        v̄1 = v̄0 + 1
+        v̄1 = v̄0 + 1 / 2
         r̄1 = r̄0 + 1
         ū1 = (r̄0 * ū0 + yi) / r̄1
-        s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2
+        s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2 / 2
     end
 
-    if iszero(r̄0)
-        return - 0.5 * v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
-    else
+    # if iszero(r̄0)
+    #     return - v̄1 * log(s̄1) + loggamma(v̄1) - 0.5 * log(2π)
+    # else
         return (
-            0.5 * v̄0 * log(s̄0) -
-            0.5 * v̄1 * log(s̄1) +
-            loggamma(v̄1 / 2) -
-            loggamma(v̄0 / 2) +
+            v̄0 * log(s̄0) -
+            v̄1 * log(s̄1) +
+            loggamma(v̄1) -
+            loggamma(v̄0) +
             0.5 * log(r̄0 / r̄1) -
-            0.5 * log(π)
+            0.5 * log(2π)
         )
-    end
+    # end
 end
 
 function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
@@ -190,33 +193,33 @@ function logpredlik(m::NormalDDP, train, predict, i::Int, k::Int)
     r̄0 = lambda0_post[k][zi]
     ū0 = mu0_post[k][zi]
     s̄0 = b0_post[k][zi]
-    v̄1 = v̄0 + 1
+    v̄1 = v̄0 + 1 / 2
     r̄1 = r̄0 + 1
     ū1 = (r̄0 * ū0 + yi) / r̄1
-    s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2
+    s̄1 = s̄0 + (r̄1 / r̄0) * (yi - ū1)^2 / 2
 
-    if iszero(r̄0)
-        return - 0.5v̄1 * log(s̄1) + loggamma(v̄1 / 2) - 0.5 * log(π)
-    else
+    # if iszero(r̄0)
+    #     return - v̄1 * log(s̄1) + loggamma(v̄1) - 0.5 * log(2π)
+    # else
         return (
-            0.5 * v̄0 * log(s̄0) -
-            0.5 * v̄1 * log(s̄1) +
-            loggamma(v̄1 / 2) -
-            loggamma(v̄0 / 2) +
+            v̄0 * log(s̄0) -
+            v̄1 * log(s̄1) +
+            loggamma(v̄1) -
+            loggamma(v̄0) +
             0.5 * log(r̄0 / r̄1) -
-            0.5 * log(π)
+            0.5 * log(2π)
         )
-    end
+    # end
 end
 
 function logmglik(m::NormalDDP, j::Int, k::Int)
     @extract m : lambda0 a0 b0 lambda0_post a0_post b0_post
     return(
-        0.5 * a0 * log(b0) -
-        0.5 * a0_post[k][j] * log(b0_post[k][j]) +
-        loggamma(a0_post[k][j] / 2) -
-        loggamma(a0 / 2) +
+        a0 * log(b0) -
+        a0_post[k][j] * log(b0_post[k][j]) +
+        loggamma(a0_post[k][j]) -
+        loggamma(a0) +
         0.5 * log(lambda0 / lambda0_post[k][j]) -
-        0.5 * log(π) * (lambda0_post[k][j] - lambda0)
+        0.5 * (lambda0_post[k][j] - lambda0) * log(2π)
     )
 end
