@@ -5,12 +5,12 @@ function gamma_posterior(chain)
     gamma_freq = counts(gamma_rank, gamma_card)
     pgamma = gamma_freq ./ length(chain.gamma)
     N = length(gamma_unique)
-    G = length(gamma_unique[1])
+    ngroups = length(gamma_unique[1])
     df = DataFrame(
-        [zeros(Bool, N) for k in 2:G],
-        [Symbol("group$i") for i in 2:G]
+        [zeros(Bool, N) for k in 2:ngroups],
+        [Symbol("group$i") for i in 2:ngroups]
     )
-    for i in 1:N, j in 2:G
+    for i in 1:N, j in 2:ngroups
         df[i, j - 1] = gamma_unique[i][j]
     end
     df[!, :prob] = pgamma

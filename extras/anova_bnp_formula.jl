@@ -38,17 +38,17 @@ function anova_bnp_normal(
     data0 = NormalData(X0, y0)
 
     # Set data for prediction
-    G = length(data0.Xunique)
+    ngroups = length(data0.Xunique)
     lb = minimum(y0) - 1.5 * std(y0)
     ub = maximum(y0) + 1.5 * std(y0)
-    y1 = range(lb, ub, length = n) |> x -> repeat(x, inner = G)
+    y1 = range(lb, ub, length = n) |> x -> repeat(x, inner = ngroups)
     X1 = repeat(vcat(data0.Xunique'...), n)
     data1 = NormalData(X1, y1)
 
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    model = NormalDDP(rng, N, G)
+    model = NormalDDP(rng, N, ngroups)
 
     # Train the model
     ch = train(rng, model, data0, data1; iter, warmup);

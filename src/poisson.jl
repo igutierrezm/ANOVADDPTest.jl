@@ -21,11 +21,11 @@ struct PoissonDDP <: AbstractDPM
     sumlogfacty::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
-    G::Int
+    ngroups::Int
     function PoissonDDP(
         rng::AbstractRNG,
         N::Int,
-        G::Int;
+        ngroups::Int;
         K0::Int = 1,
         a::Float64 = 2.0,
         b::Float64 = 4.0,
@@ -34,12 +34,12 @@ struct PoissonDDP <: AbstractDPM
         rho::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0 = a, b0 = b)
-        a1_post = [a1 * ones(Int, G)]
-        b1_post = [b1 * ones(Int, G)]
-        sumlogfacty = [zeros(G)]
-        gammaprior = Womack(G - 1, rho)
-        gamma = ones(Bool, G)
-        new(parent, a1, b1, a1_post, b1_post, sumlogfacty, gammaprior, gamma, G)
+        a1_post = [a1 * ones(Int, ngroups)]
+        b1_post = [b1 * ones(Int, ngroups)]
+        sumlogfacty = [zeros(ngroups)]
+        gammaprior = Womack(ngroups - 1, rho)
+        gamma = ones(Bool, ngroups)
+        new(parent, a1, b1, a1_post, b1_post, sumlogfacty, gammaprior, gamma, ngroups)
     end
 end
 
@@ -48,10 +48,10 @@ function parent_dpm(model::PoissonDDP)
 end
 
 function add_cluster!(model::PoissonDDP)
-    @extract model : G a1 b1 a1_post b1_post sumlogfacty
-    push!(a1_post, a1 * ones(G))
-    push!(b1_post, b1 * ones(G))
-    push!(sumlogfacty, zeros(G))
+    @extract model : ngroups a1 b1 a1_post b1_post sumlogfacty
+    push!(a1_post, a1 * ones(ngroups))
+    push!(b1_post, b1 * ones(ngroups))
+    push!(sumlogfacty, zeros(ngroups))
 end
 
 function update_suffstats!(model::PoissonDDP, data)

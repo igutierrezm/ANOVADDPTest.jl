@@ -1,13 +1,13 @@
 function gamma_codebook(data0)
-    G = length(data0.Xunique);
+    ngroups = length(data0.Xunique);
     D = length(data0.Xunique[1]);
     df = DataFrame(
-        [zeros(Int, G) for k in 1:D],
+        [zeros(Int, ngroups) for k in 1:D],
         [Symbol("x$i") for i in 1:D]
     )
-    for i in 1:G, j in 1:D
+    for i in 1:ngroups, j in 1:D
         df[i, j] = data0.Xunique[i][j]
     end
-    insertcols!(df, 1, :group => 1:G)
+    insertcols!(df, 1, :group => 1:ngroups)
     return df
 end

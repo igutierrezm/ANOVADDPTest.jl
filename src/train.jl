@@ -7,7 +7,7 @@ function train(
     warmup = iter ÷ 2, 
     thin = 1
 )
-    gammachain = [zeros(Bool, model.G) for _ = 1:(iter - warmup) ÷ thin]
+    gammachain = [zeros(Bool, model.ngroups) for _ = 1:(iter - warmup) ÷ thin]
     fchain = [zeros(length(predict.y)) for _ = 1:(iter - warmup) ÷ thin]
     for t in 1:iter
         update!(rng, model, train)

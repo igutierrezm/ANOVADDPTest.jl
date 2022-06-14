@@ -4,16 +4,16 @@ using DataFrames
 using Distributions
 using Random
 
-function generate_plot_poisson(N, G, distinct_groups)
+function generate_plot_poisson(N, ngroups, distinct_groups)
     rng = MersenneTwister(1)
-    model = PoissonDDP(rng, N, G)
-    x = rand(rng, 1:G, N)
+    model = PoissonDDP(rng, N, ngroups)
+    x = rand(rng, 1:ngroups, N)
     y = rand(rng, Poisson(2), N)
     for i in 1:N
         x[i] in distinct_groups && (y[i] = rand(rng, Poisson(4)))
     end
     data = PoissonData(x, y)
-    pred = PoissonData(expandgrid(1:G, 0:8)...)
+    pred = PoissonData(expandgrid(1:ngroups, 0:8)...)
     ch = train(rng, model, data, pred)
     df = DataFrame(x = pred.x, y = pred.y, f = mean(ch.f))
     plot(df, x = :y, y = :f, color = :x, Geom.line, Scale.color_discrete())

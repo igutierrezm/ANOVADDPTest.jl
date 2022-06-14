@@ -24,11 +24,11 @@ struct NormalDDP <: AbstractDPM
     b0_post::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
-    G::Int
+    ngroups::Int
     function NormalDDP(
         rng::AbstractRNG,
         N::Int,
-        G::Int;
+        ngroups::Int;
         K0::Int = 5,
         a::Float64 = 2.0,
         b::Float64 = 4.0,
@@ -39,15 +39,15 @@ struct NormalDDP <: AbstractDPM
         rho::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0 = a, b0 = b)
-        mu0_post = [mu0 * ones(G)]
-        lambda0_post = [lambda0 * ones(G)]
-        a0_post = [a0 * ones(G)]
-        b0_post = [b0 * ones(G)]
-        gammaprior = Womack(G - 1, rho)
-        gamma = ones(Bool, G)
+        mu0_post = [mu0 * ones(ngroups)]
+        lambda0_post = [lambda0 * ones(ngroups)]
+        a0_post = [a0 * ones(ngroups)]
+        b0_post = [b0 * ones(ngroups)]
+        gammaprior = Womack(ngroups - 1, rho)
+        gamma = ones(Bool, ngroups)
         new(
             parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post, 
-            a0_post, b0_post, gammaprior, gamma, G
+            a0_post, b0_post, gammaprior, gamma, ngroups
         )
     end
 end
@@ -57,11 +57,11 @@ function parent_dpm(model::NormalDDP)
 end
 
 function add_cluster!(model::NormalDDP)
-    @extract model : G mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
-    push!(mu0_post, mu0 * ones(G))
-    push!(lambda0_post, lambda0 * ones(G))
-    push!(a0_post, a0 * ones(G))
-    push!(b0_post, b0 * ones(G))
+    @extract model : ngroups mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
+    push!(mu0_post, mu0 * ones(ngroups))
+    push!(lambda0_post, lambda0 * ones(ngroups))
+    push!(a0_post, a0 * ones(ngroups))
+    push!(b0_post, b0 * ones(ngroups))
 end
 
 function update_suffstats!(model::NormalDDP, data)

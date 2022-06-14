@@ -20,11 +20,11 @@ struct BernoulliDDP <: AbstractDPM
     b2_post::Vector{Vector{Float64}}
     gammaprior::Womack
     gamma::Vector{Bool}
-    G::Int
+    ngroups::Int
     function BernoulliDDP(
         rng::AbstractRNG,
         N::Int,
-        G::Int;
+        ngroups::Int;
         K0::Int = 1,
         a::Float64 = 2.0,
         b::Float64 = 4.0,
@@ -33,11 +33,11 @@ struct BernoulliDDP <: AbstractDPM
         rho::Float64 = 1.0,
     )
         parent = DPM(rng, N; K0, a0 = a, b0 = b)
-        a2_post = [a2 * ones(G)]
-        b2_post = [b2 * ones(G)]
-        gammaprior = Womack(G - 1, rho)
-        gamma = ones(Bool, G)
-        new(parent, a2, b2, a2_post, b2_post, gammaprior, gamma, G)
+        a2_post = [a2 * ones(ngroups)]
+        b2_post = [b2 * ones(ngroups)]
+        gammaprior = Womack(ngroups - 1, rho)
+        gamma = ones(Bool, ngroups)
+        new(parent, a2, b2, a2_post, b2_post, gammaprior, gamma, ngroups)
     end
 end
 
@@ -46,9 +46,9 @@ function parent_dpm(model::BernoulliDDP)
 end
 
 function add_cluster!(model::BernoulliDDP)
-    @extract model : a2 b2 a2_post b2_post G
-    push!(a2_post, a2 * ones(Int, G))
-    push!(b2_post, b2 * ones(Int, G))
+    @extract model : a2 b2 a2_post b2_post ngroups
+    push!(a2_post, a2 * ones(Int, ngroups))
+    push!(b2_post, b2 * ones(Int, ngroups))
 end
 
 function update_suffstats!(model::BernoulliDDP, data)

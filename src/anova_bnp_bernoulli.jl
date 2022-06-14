@@ -17,15 +17,15 @@ function anova_bnp_bernoulli(
     data0 = BernoulliData(X, y)
 
     # Set data for prediction
-    G = length(data0.Xunique)
-    y1 = lb:ub |> x -> repeat(x, inner = G)
+    ngroups = length(data0.Xunique)
+    y1 = lb:ub |> x -> repeat(x, inner = ngroups)
     X1 = repeat(vcat(data0.Xunique'...), ub - lb + 1)
     data1 = BernoulliData(X1, y1)
 
     # Initialize the model
     N = length(y)
     rng = MersenneTwister(seed)
-    model = BernoulliDDP(rng, N, G; a, b, a2, b2, rho)
+    model = BernoulliDDP(rng, N, ngroups; a, b, a2, b2, rho)
 
     # Train the model
     ch = train(rng, model, data0, data1; iter, warmup);
