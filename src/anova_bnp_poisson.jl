@@ -1,21 +1,3 @@
-# using Revise
-# using ANOVADDPTest
-# using StatsModels
-# using Statistics
-# using DataFrames
-# using Distributions
-# using Random
-
-# # Simulate sample
-# function simulate_sample_poisson(rng, N)
-#     X = rand(rng, 1:2, N, 2);
-#     y = rand(rng, Poisson(1.0), N);
-#     for i in 1:N
-#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-#     end
-#     return y, X
-# end
-
 # Fit the model in a more pleasant way
 function anova_bnp_poisson(
     y::Vector{Int},
@@ -69,6 +51,24 @@ function anova_bnp_poisson(
         fpost
     )
 end
+
+# using Revise
+# using ANOVADDPTest
+# using StatsModels
+# using Statistics
+# using DataFrames
+# using Distributions
+# using Random
+
+# # Simulate sample
+# function simulate_sample_poisson(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     y = rand(rng, Poisson(1.0), N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end
 
 # # Example
 # N = 1000;

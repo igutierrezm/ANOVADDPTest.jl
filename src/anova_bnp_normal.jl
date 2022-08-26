@@ -1,21 +1,3 @@
-# using Revise
-# using ANOVADDPTest
-# using StatsModels
-# using Statistics
-# using DataFrames
-# using Distributions
-# using Random
-
-# # Simulate sample
-# function simulate_sample_poisson(rng, N)
-#     X = rand(rng, 1:2, N, 2);
-#     y = rand(rng, Poisson(1.0), N);
-#     for i in 1:N
-#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-#     end
-#     return y, X
-# end
-
 struct anova_bnp_fitted
     group_codes::DataFrame
     group_probs::DataFrame
@@ -102,3 +84,21 @@ group_probs(x::anova_bnp_fitted) = x.group_probs
 effects1(x::anova_bnp_fitted) = x.effects1
 effects2(x::anova_bnp_fitted) = x.effects2
 fpost(x::anova_bnp_fitted) = x.fpost
+
+# using Revise
+# using ANOVADDPTest
+# using StatsModels
+# using Statistics
+# using DataFrames
+# using Distributions
+# using Random
+
+# # Simulate sample
+# function simulate_sample_poisson(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     y = rand(rng, Poisson(1.0), N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end

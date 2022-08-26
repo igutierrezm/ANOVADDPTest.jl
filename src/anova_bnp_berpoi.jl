@@ -1,24 +1,3 @@
-begin
-    using Revise
-    using ANOVADDPTest
-    using StatsModels
-    using Statistics
-    using DataFrames
-    using Distributions
-    using Random
-end
-
-# Simulate sample
-function simulate_sample_berpoi(rng, N)
-    X = rand(rng, 1:2, N, 2);
-    λ = 1.0
-    y = rand(rng, Poisson(λ), N);
-    for i in 1:N
-        ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-    end
-    return y, X
-end
-
 # Fit the model in a more pleasant way
 function anova_bnp_berpoi(
     y::Vector{Int},
@@ -74,6 +53,27 @@ function anova_bnp_berpoi(
         fpost
     )
 end
+
+# begin
+#     using Revise
+#     using ANOVADDPTest
+#     using StatsModels
+#     using Statistics
+#     using DataFrames
+#     using Distributions
+#     using Random
+# end
+
+# # Simulate sample
+# function simulate_sample_berpoi(rng, N)
+#     X = rand(rng, 1:2, N, 2);
+#     λ = 1.0
+#     y = rand(rng, Poisson(λ), N);
+#     for i in 1:N
+#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
+#     end
+#     return y, X
+# end
 
 # # Example
 # N = 1000;
