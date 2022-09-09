@@ -1,6 +1,6 @@
 # Fit the model in a more pleasant way
 function anova_bnp_bernoulli(
-    y::Vector{Bool},
+    y0::AbstractVector,
     X::Matrix{Int};
     iter::Int = 4000, # taken from rstan::stan()
     warmup::Int = 2000, # taken from rstan::stan()
@@ -14,6 +14,7 @@ function anova_bnp_bernoulli(
     ub::Int = maximum(y)
 )
     # Set data for training
+    y = Vector{Bool}(y0)
     data0 = BernoulliData(X, y)
 
     # Set data for prediction
