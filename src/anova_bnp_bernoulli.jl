@@ -19,7 +19,7 @@ function anova_bnp_bernoulli(
 
     # Set data for prediction
     ngroups = length(data0.Xunique)
-    y1 = lb:ub |> x -> repeat(x, inner = ngroups)
+    y1 = Vector{Bool}(lb:ub |> x -> repeat(x, inner = ngroups))
     X1 = repeat(vcat(data0.Xunique'...), ub - lb + 1)
     data1 = BernoulliData(X1, y1)
 
