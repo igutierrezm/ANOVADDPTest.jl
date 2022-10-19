@@ -145,14 +145,13 @@ function logpredlik(model::BerPoiDDP, train, predict, i::Int, k::Int)
     a1kj = a1_post[k][j]
     b1kj = b1_post[k][j]
     # Compute P(znew = 1 | y, ...)
-    znew = rand(Bernoulli(alphaberpoi[k][j]))
-    return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i] - znew)
-    # TODO: marginalize zberpoinew?
-    # dist = NegativeBinomial(a1kj, b1kj / (b1kj + 1))
-    # return log(
-    #     (0 + alphaberpoi[k][j]) * pdf(dist, y[i] - 1) +
-    #     (1 - alphaberpoi[k][j]) * pdf(dist, y[i])
-    # )
+    # znew = rand(Bernoulli(alphaberpoi[k][j]))
+    # return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i] - znew)
+    dist = NegativeBinomial(a1kj, b1kj / (b1kj + 1))
+    return log(
+        (0 + alphaberpoi[k][j]) * pdf(dist, y[i] - 1) +
+        (1 - alphaberpoi[k][j]) * pdf(dist, y[i])
+    )
 end
 
 function logmglik(model::BerPoiDDP, j::Int, k::Int)
