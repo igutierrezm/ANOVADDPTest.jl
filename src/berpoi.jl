@@ -217,9 +217,10 @@ function update_zberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
     d = cluster_labels(model)
     for i in eachindex(zberpoi)
         k = d[i]
-        ak = alphaberpoi[k]
-        lk = lambdaberpoi[k]
-        pz = ak * y[i] / (ak * y[i] + (1 - ak) * lk)
+        g = x[i]
+        akg = alphaberpoi[k][g]
+        lkg = lambdaberpoi[k][g]
+        pz = akg * y[i] / (akg * y[i] + (1 - akg) * lkg)
         zberpoi[i] = rand(Bernoulli(pz))
     end
     return nothing
