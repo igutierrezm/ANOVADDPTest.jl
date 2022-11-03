@@ -215,7 +215,7 @@ function update_zberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
     @extract model : ngroups alpha0_post zberpoi lambdaberpoi alphaberpoi
     @extract data : y x
     d = cluster_labels(model)
-    for i in eachindex(z)
+    for i in eachindex(zberpoi)
         k = d[i]
         ak = alphaberpoi[k]
         lk = lambdaberpoi[k]
