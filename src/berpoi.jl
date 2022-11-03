@@ -211,8 +211,23 @@ function update_lambdapoi!(rng::AbstractRNG, model::BerPoiDDP, data)
     end
 end
 
+function update_zberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
+    @extract model : ngroups alpha0_post zberpoi lambdaberpoi alphaberpoi
+    @extract data : y x
+    d = cluster_labels(model)
+    for i in eachindex(z)
+        k = d[i]
+        ak = alphaberpoi[k]
+        lk = lambdaberpoi[k]
+        pz = ak * y[i] / (ak * y[i] + (1 - ak) * lk)
+        zberpoi[i] = rand(Bernoulli(pz))
+    end
+    return nothing
+end
+
 function update_hyperpars!(rng::AbstractRNG, model::BerPoiDDP, data)
     update_gamma!(rng, model, data)
     update_lambdapoi!(rng, model, data)
     update_alphaberpoi!(rng, model, data)
+    update_zberpoi!(rng, model, data)
 end
