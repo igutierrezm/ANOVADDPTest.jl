@@ -97,7 +97,7 @@ function update_suffstats!(model::BerPoiDDP, data)
         di = d[i]
         zi = iszero(gamma[x[i]]) ? 1 : x[i]
         sumlogfactystar[di][zi] += logfactorial(y[i] - zberpoi[i])
-        a1_post[di][zi] += y[i]
+        a1_post[di][zi] += y[i] - zberpoi[i]
         b1_post[di][zi] += 1
         alpha0_post[di][zi] += zberpoi[i]
         beta0_post[di][zi] += 1 - zberpoi[i]
@@ -114,17 +114,17 @@ function update_suffstats!(model::BerPoiDDP, data, i::Int, k1::Int, k2::Int)
     zi = iszero(gamma[x[i]]) ? 1 : x[i]
 
     # Modify cluster/group k2/zi
-    a1_post[k2][zi] += y[i]
+    a1_post[k2][zi] += y[i] - zberpoi[i]
     b1_post[k2][zi] += 1
     alpha0_post[k2][zi] += zberpoi[i]
     beta0_post[k2][zi] += 1 - zberpoi[i]
     sumlogfactystar[k2][zi] += logfactorial(y[i] - zberpoi[i])
 
     # Modify cluster/group k1/zi
-    a1_post[k1][zi] -= y[i]
+    a1_post[k1][zi] -= (y[i] - zberpoi[i])
     b1_post[k1][zi] -= 1
     alpha0_post[k1][zi] -= zberpoi[i]
-    beta0_post[k1][zi] -= 1 - zberpoi[i]
+    beta0_post[k1][zi] -= (1 - zberpoi[i])
     sumlogfactystar[k1][zi] -= logfactorial(y[i] - zberpoi[i])
 end
 
@@ -133,7 +133,7 @@ function logpredlik(model::BerPoiDDP, data, i::Int, k::Int)
     @extract model : a1_post b1_post gamma zberpoi
     @extract data : y x
     j = iszero(gamma[x[i]]) ? 1 : x[i]
-    a1kj = a1_post[k][j] - (d[i] == k) * y[i]
+    a1kj = a1_post[k][j] - (d[i] == k) * (y[i] - zberpoi[i])
     b1kj = b1_post[k][j] - (d[i] == k)
     return logpdf(NegativeBinomial(a1kj, b1kj / (b1kj + 1)), y[i] - zberpoi[i])
 end
@@ -192,22 +192,22 @@ function update_gamma!(rng::AbstractRNG, model::BerPoiDDP, data)
 end
 
 function update_alphaberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
-    @extract model : ngroups a1_post b1_post alphaberpoi
-    while length(a1_post) < cluster_capacity(model)
-        add_cluster!(model)
-    end
-    for g in 1:ngroups, k in active_clusters(model)
-        alphaberpoi[k][g] = rand(rng, Beta(a1_post[k][g], b1_post[k][g]))
-    end
-end
-
-function update_lambdapoi!(rng::AbstractRNG, model::BerPoiDDP, data)
-    @extract model : ngroups alpha0_post beta0_post lambdaberpoi
+    @extract model : ngroups alpha0_post beta0_post alphaberpoi
     while length(alpha0_post) < cluster_capacity(model)
         add_cluster!(model)
     end
     for g in 1:ngroups, k in active_clusters(model)
-        lambdaberpoi[k][g] = rand(rng, Gamma(alpha0_post[k][g], beta0_post[k][g]))
+        alphaberpoi[k][g] = rand(rng, Beta(alpha0_post[k][g], beta0_post[k][g]))
+    end
+end
+
+function update_lambdapoi!(rng::AbstractRNG, model::BerPoiDDP, data)
+    @extract model : ngroups a1_post b1_post lambdaberpoi
+    while length(a1_post) < cluster_capacity(model)
+        add_cluster!(model)
+    end
+    for g in 1:ngroups, k in active_clusters(model)
+        lambdaberpoi[k][g] = rand(rng, Gamma(a1_post[k][g], b1_post[k][g]))
     end
 end
 
