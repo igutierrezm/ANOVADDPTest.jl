@@ -9,6 +9,7 @@ using SpecialFunctions
 using StatsBase
 using StatsModels
 
+import Distributions: Beta, Gamma, Poisson
 import Distributions: pdf, logpdf, shape, scale, rate, rand
 import DPMNeal3: parent_dpm, logpredlik, update_hyperpars!, update_suffstats!
 
@@ -36,5 +37,6 @@ include("anova_bnp_normal.jl")
 include("anova_bnp_poisson.jl")
 include("anova_bnp_bernoulli.jl")
 include("anova_bnp_berpoi.jl")
+include("polya_completion.jl")
 
 end # module

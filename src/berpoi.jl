@@ -201,7 +201,7 @@ function update_alphaberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
     end
 end
 
-function update_lambdapoi!(rng::AbstractRNG, model::BerPoiDDP, data)
+function update_lambdaberpoi!(rng::AbstractRNG, model::BerPoiDDP, data)
     @extract model : ngroups a1_post b1_post lambdaberpoi
     while length(a1_post) < cluster_capacity(model)
         add_cluster!(model)
@@ -228,7 +228,51 @@ end
 
 function update_hyperpars!(rng::AbstractRNG, model::BerPoiDDP, data)
     update_gamma!(rng, model, data)
-    update_lambdapoi!(rng, model, data)
+    update_lambdaberpoi!(rng, model, data)
     update_alphaberpoi!(rng, model, data)
     update_zberpoi!(rng, model, data)
+end
+
+function density(model::BerPoiDDP, ygrid::Vector{Int}; v = 0.01, ϵ = 0.01)
+    wnew, snew = polya_completion(m; v, ϵ)
+    nclusters = length(snew)
+    ngroups = model.ngroups
+    npoints = length(ygrid)
+    atoms = draw_atoms(model, maximum(snew))
+    fgrid = [zeros(npoints) for _ in 1:ngroups]
+    for i in 1:npoints
+        for k in 1:nclusters
+            for j in 1:ngroups
+                w = wnew[k]
+                s = snew[k]
+                y0 = ygrid[i]
+                αsj, λsj = atoms[s][j]
+                d0 = Poisson(λsj)
+                fgrid[j][i] += w * αsj * pdf(d0, y0 - 1)
+                fgrid[j][i] += w * (1 - αsj) * pdf(d0, y0)
+            end
+        end
+    end
+end
+
+function draw_atoms(model::BerPoiDDP, max_snew::Int)
+    out = map(1:max_snew) do k
+        map(1:model.ngroups) do j
+            draw_atom(model, k, j)
+        end
+    end
+    return out
+end
+
+function draw_atom(model::BerPoiDDP, k::Int, j::Int)
+    @extract model : alpha0_post beta0_post a1_post b1_post
+    @extract model : alpha0 beta0 a1 b1
+    if k in active_clusters(model)
+        αkj = rand(Beta(alpha0_post[k][j], beta0_post[k][j]))
+        λkj = rand(Gamma(a1_post[k][j], 1 / b1_post[k][j]))
+        else
+            αkj = rand(Beta(alpha0, beta0))
+            λkj = rand(Gamma(a1, 1 / b1))
+        end
+    return αkj, λkj
 end

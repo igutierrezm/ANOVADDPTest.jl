@@ -46,7 +46,7 @@ struct NormalDDP <: AbstractDPM
         gammaprior = Womack(ngroups - 1, rho)
         gamma = ones(Bool, ngroups)
         new(
-            parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post, 
+            parent, mu0, lambda0, a0, b0, mu0_post, lambda0_post,
             a0_post, b0_post, gammaprior, gamma, ngroups
         )
     end
@@ -57,15 +57,19 @@ function parent_dpm(model::NormalDDP)
 end
 
 function add_cluster!(model::NormalDDP)
-    @extract model : ngroups mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post
+    @extract model : ngroups mu0 lambda0 a0 b0 mu0_post lambda0_post
+    @extract model : a0_post b0_post
     push!(mu0_post, mu0 * ones(ngroups))
     push!(lambda0_post, lambda0 * ones(ngroups))
     push!(a0_post, a0 * ones(ngroups))
     push!(b0_post, b0 * ones(ngroups))
+    return nothing
 end
 
 function update_suffstats!(model::NormalDDP, data)
-    @extract model : mu0 lambda0 a0 b0 mu0_post lambda0_post a0_post b0_post gamma
+    @extract model : mu0 lambda0 a0 b0
+    @extract model : mu0_post lambda0_post a0_post b0_post
+    @extract model : gamma
     @extract data : y x
     d = cluster_labels(model)
     while length(a0_post) < cluster_capacity(model)
@@ -222,4 +226,47 @@ function logmglik(model::NormalDDP, j::Int, k::Int)
         0.5 * log(lambda0 / lambda0_post[k][j]) -
         0.5 * (lambda0_post[k][j] - lambda0) * log(2π)
     )
+end
+
+function density(model::NormalDDP, ygrid::Vector{Float64}; v = 0.01, ϵ = 0.01)
+    wnew, snew = polya_completion(m; v, ϵ)
+    nclusters = length(snew)
+    ngroups = model.ngroups
+    npoints = length(ygrid)
+    atoms = draw_atoms(model, maximum(snew))
+    fgrid = [zeros(npoints) for _ in 1:ngroups]
+    for i in 1:npoints
+        for k in 1:nclusters
+            for j in 1:ngroups
+                w = wnew[k]
+                s = snew[k]
+                y0 = ygrid[i]
+                μsj, λsj = atoms[s][j]
+                d0 = Normal(μsj, 1 / √λsj)
+                fgrid[j][i] += w * pdf(d0, y0)
+            end
+        end
+    end
+end
+
+function draw_atoms(model::NormalDDP, max_snew::Int)
+    out = map(1:max_snew) do k
+        map(1:model.ngroups) do j
+            draw_atom(model, k, j)
+        end
+    end
+    return out
+end
+
+function draw_atom(model::NormalDDP, k::Int, j::Int)
+    @extract model : mu0_post lambda0_post a0_post b0_post
+    @extract model : mu0 lambda0 a0 b0
+    if k in active_clusters(model)
+        lambdakj = rand(Gamma(a0_post[k][j], 1 / b0_post[k][j]))
+        mukj = mu0_post[k][j] + randn() / sqrt(lambda0_post[k][j] * lambdakj)
+    else
+        lambdakj = rand(Gamma(a0, 1 / b0))
+        mukj = mu0 + randn() / sqrt(lambda0 * lambdakj)
+    end
+    return mukj, lambdakj
 end

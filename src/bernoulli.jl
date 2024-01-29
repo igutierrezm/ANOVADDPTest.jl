@@ -150,3 +150,43 @@ end
 function update_hyperpars!(rng::AbstractRNG, model::BernoulliDDP, data)
     update_gamma!(rng, model, data)
 end
+
+function density(model::BernoulliDDP, ygrid::Vector{Bool}; v = 0.01, ϵ = 0.01)
+    wnew, snew = polya_completion(m; v, ϵ)
+    nclusters = length(snew)
+    ngroups = model.ngroups
+    npoints = length(ygrid)
+    atoms = draw_atoms(model, maximum(snew))
+    fgrid = [zeros(npoints) for _ in 1:ngroups]
+    for i in 1:npoints
+        for k in 1:nclusters
+            for j in 1:ngroups
+                w = wnew[k]
+                s = snew[k]
+                y0 = ygrid[i]
+                θsj = atoms[s][j]
+                d0 = Bernoulli(θsj)
+                fgrid[j][i] += w * pdf(d0, y0)
+            end
+        end
+    end
+end
+
+function draw_atoms(model::BernoulliDDP, max_snew::Int)
+    out = map(1:max_snew) do k
+        map(1:model.ngroups) do j
+            draw_atom(model, k, j)
+        end
+    end
+    return out
+end
+
+function draw_atom(model::BernoulliDDP, k::Int, j::Int)
+    @extract model : a2_post b2_post a2 b2
+    if k in active_clusters(model)
+        thetakj = rand(Beta(a2_post[k][j], b2_post[k][j]))
+    else
+        thetakj = rand(Beta(a2, b2))
+    end
+    return thetakj
+end

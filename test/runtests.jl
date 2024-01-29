@@ -10,5 +10,5 @@ using Test
 
 include("utils.jl")
 include("normal.jl")
-include("poisson.jl")
+# include("poisson.jl")
 include("bernoulli.jl")

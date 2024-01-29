@@ -1,4 +1,4 @@
-@testset "PoissonDDP" begin
+@testset "BerPoiDDP" begin
     N, ngroups, K0 = 10, 4, 1
     rng = MersenneTwister(1)
     model = PoissonDDP(rng, N, ngroups; K0)
