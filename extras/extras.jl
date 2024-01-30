@@ -38,6 +38,35 @@ ggplot(tbl_shift, aes(y = "shift", x = "y", color = "group")) +
     geom_line()
 
 
+function shift_functions(fpost)
+    # Extract f for the treatment and control groups
+    tbl_f0 = filter(:group => (x -> x == 1), fpost) # control group
+    tbl_f1 = filter(:group => (x -> x != 1), fpost) # treatment group
+
+    # Create a quantile function
+    v = tbl_f0.y
+    w = aweights(tbl_f0.f / sum(tbl_f0.f))
+    custom_quantile(x) = Statistics.quantile(v, w, x)
+
+    # Compute the shift function for each treatment group
+    tbl_shift =
+        tbl_f1 |>
+        x -> sort(x, [:group, :y]) |>
+        x -> groupby(x, :group) |>
+        x -> transform(x, :f => (x -> cumsum(x)) => :F; ungroup = false) |>
+        x -> transform(x, :F => (x -> x / maximum(x)) => :F; ungroup = false) |>
+        x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
+        x -> select(x, [:group, :y, :shift])
+    return tbl_shift
+end
+
+tbl_shift = fpost(fm) |> shift_functions
+
+ggplot(tbl_shift, aes(y = "shift", x = "y")) +
+    geom_line()
+
+
+
 
 # # p = data(f) * mapping(:y, :value) * visual(Lines) * mapping(color = :variable)
 # # draw(p)
