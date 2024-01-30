@@ -4,7 +4,7 @@ struct anova_bnp_fitted
     effects1::DataFrame
     effects2::DataFrame
     fpost::DataFrame
-    # densitypost::DataFrame
+    shiftpost::DataFrame
 end
 
 # Fit the model in a more pleasant way
@@ -72,20 +72,8 @@ function anova_bnp_normal(
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
-    # # Compute the density
-    # densitypost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.d))
-    # # Compute the target density
-    # densitypost = DataFrame(hcat(ch.d...), :auto)
-    # densitypost.group = data1.x
-    # densitypost.y = data1.y
-
-    # # Pivot densitypost
-    # myparse = u -> parse.(Int, replace.(u, "x" => ""))
-    # densitypost =
-    #     densitypost |>
-    #     x -> stack(x, Not(:group, :y), variable_name = "iter") |>
-    #     x -> transform!(x, :iter => myparse => :iter) |>
-    #     x -> sort!(x, [:iter, :group, :y])
+    # Compute the shift functions
+    shiftpost = shift_function(fpost)
 
     return anova_bnp_fitted(
         group_codes,
@@ -93,7 +81,7 @@ function anova_bnp_normal(
         effects1,
         effects2,
         fpost,
-        # densitypost
+        shiftpost
     )
 end
 
@@ -102,22 +90,4 @@ group_probs(x::anova_bnp_fitted) = x.group_probs
 effects1(x::anova_bnp_fitted) = x.effects1
 effects2(x::anova_bnp_fitted) = x.effects2
 fpost(x::anova_bnp_fitted) = x.fpost
-density(x::anova_bnp_fitted) = x.densitypost
-
-# using Revise
-# using ANOVADDPTest
-# using StatsModels
-# using Statistics
-# using DataFrames
-# using Distributions
-# using Random
-
-# # Simulate sample
-# function simulate_sample_poisson(rng, N)
-#     X = rand(rng, 1:2, N, 2);
-#     y = rand(rng, Poisson(1.0), N);
-#     for i in 1:N
-#         ((X[i, 1] == 2) && (X[i, 2] == 2)) && (y[i] += 1)
-#     end
-#     return y, X
-# end
+shiftpost(x::anova_bnp_fitted) = x.shiftpost

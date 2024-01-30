@@ -43,12 +43,16 @@ function anova_bnp_bernoulli(
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
+    # Compute the shift functions
+    shiftpost = shift_function(fpost)
+
     return anova_bnp_fitted(
         group_codes,
         group_probs,
         effects1,
         effects2,
-        fpost
+        fpost,
+        shiftpost
     )
 end
 
