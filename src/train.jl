@@ -38,3 +38,5 @@ function predlik(model::AbstractDPM, train, predict, i::Int)
     ans += exp(logpredlik(model, train, predict, i, k̄)) * alpha / (N + alpha)
     return(ans)
 end
+
+
