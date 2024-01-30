@@ -233,26 +233,26 @@ function update_hyperpars!(rng::AbstractRNG, model::BerPoiDDP, data)
     update_zberpoi!(rng, model, data)
 end
 
-function density(model::BerPoiDDP, ygrid::Vector{Int}; v = 0.01, ϵ = 0.01)
+function density(model::BerPoiDDP, predict; v = 0.01, ϵ = 0.01)
     wnew, snew = polya_completion(m; v, ϵ)
-    nclusters = length(snew)
-    ngroups = model.ngroups
-    npoints = length(ygrid)
     atoms = draw_atoms(model, maximum(snew))
-    fgrid = [zeros(npoints) for _ in 1:ngroups]
+    @extract predict : y x
+    npoints = length(y)
+    fgrid = zeros(npoints)
+    nclusters = length(snew)
     for i in 1:npoints
         for k in 1:nclusters
-            for j in 1:ngroups
-                w = wnew[k]
-                s = snew[k]
-                y0 = ygrid[i]
-                αsj, λsj = atoms[s][j]
-                d0 = Poisson(λsj)
-                fgrid[j][i] += w * αsj * pdf(d0, y0 - 1)
-                fgrid[j][i] += w * (1 - αsj) * pdf(d0, y0)
-            end
+            x0 = x[i]
+            y0 = y[i]
+            w0 = wnew[k]
+            s0 = snew[k]
+            αsj, λsj = atoms[s0][x0]
+            dist0 = Poisson(λsj)
+            fgrid[i] += w0 * αsj * pdf(dist0, y0 - 1)
+            fgrid[i] += w0 * (1 - αsj) * pdf(dist0, y0)
         end
     end
+    return fgrid
 end
 
 function draw_atoms(model::BerPoiDDP, max_snew::Int)

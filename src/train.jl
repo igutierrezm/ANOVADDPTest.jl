@@ -1,13 +1,14 @@
 function train(
-    rng, 
-    model::AbstractDPM, 
-    train, 
-    predict; 
-    iter = 2000, 
-    warmup = iter ÷ 2, 
+    rng,
+    model::AbstractDPM,
+    train,
+    predict;
+    iter = 2000,
+    warmup = iter ÷ 2,
     thin = 1
 )
     gammachain = [zeros(Bool, model.ngroups) for _ = 1:(iter - warmup) ÷ thin]
+    # denchain = [zeros(length(predict.y)) for _ = 1:(iter - warmup) ÷ thin]
     fchain = [zeros(length(predict.y)) for _ = 1:(iter - warmup) ÷ thin]
     for t in 1:iter
         update!(rng, model, train)
@@ -17,8 +18,10 @@ function train(
             for i = 1:length(predict.y)
                 fchain[t0][i] = predlik(model, train, predict, i)
             end
+            # denchain[t0] .= density(model, predict)
         end
     end
+    # return DPM_MCMC_Chain(gammachain, fchain, denchain)
     return DPM_MCMC_Chain(gammachain, fchain)
 end
 

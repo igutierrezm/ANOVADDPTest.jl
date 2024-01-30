@@ -39,9 +39,3 @@ function polya_completion(m::AbstractDPM; v = 0.01, ϵ = 0.01)
     wvec_eff ./= sum(wvec_eff)
     return wvec_eff, snew_eff
 end
-
-using Distributions;
-rng = MersenneTwister(1);
-alpha = 1.0;
-m = DPM(rng, 1000);
-@time polya_completion(m);

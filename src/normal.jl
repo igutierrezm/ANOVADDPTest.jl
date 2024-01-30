@@ -228,25 +228,25 @@ function logmglik(model::NormalDDP, j::Int, k::Int)
     )
 end
 
-function density(model::NormalDDP, ygrid::Vector{Float64}; v = 0.01, ϵ = 0.01)
+function density(model::NormalDDP, predict; v = 0.01, ϵ = 0.01)
     wnew, snew = polya_completion(m; v, ϵ)
-    nclusters = length(snew)
-    ngroups = model.ngroups
-    npoints = length(ygrid)
     atoms = draw_atoms(model, maximum(snew))
-    fgrid = [zeros(npoints) for _ in 1:ngroups]
+    @extract predict : y x
+    npoints = length(y)
+    fgrid = zeros(npoints)
+    nclusters = length(snew)
     for i in 1:npoints
+        x0 = x[i]
+        y0 = y[i]
         for k in 1:nclusters
-            for j in 1:ngroups
-                w = wnew[k]
-                s = snew[k]
-                y0 = ygrid[i]
-                μsj, λsj = atoms[s][j]
-                d0 = Normal(μsj, 1 / √λsj)
-                fgrid[j][i] += w * pdf(d0, y0)
-            end
+            w0 = wnew[k]
+            s0 = snew[k]
+            μsj, λsj = atoms[s0][x0]
+            dist0 = Normal(μsj, 1 / √λsj)
+            fgrid[i] += w0 * pdf(dist0, y0)
         end
     end
+    return fgrid
 end
 
 function draw_atoms(model::NormalDDP, max_snew::Int)

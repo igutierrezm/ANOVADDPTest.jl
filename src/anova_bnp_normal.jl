@@ -4,6 +4,7 @@ struct anova_bnp_fitted
     effects1::DataFrame
     effects2::DataFrame
     fpost::DataFrame
+    densitypost::DataFrame
 end
 
 # Fit the model in a more pleasant way
@@ -54,6 +55,7 @@ function anova_bnp_normal(
     if standardize_y == true
         @. y = my0 + sy0 * y
         @. ch.f = ch.f ./ sy0
+        @. ch.d = ch.d ./ sy0
         @. data1.y = my0 + sy0 * data1.y
     end
 
@@ -70,12 +72,28 @@ function anova_bnp_normal(
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
+    # Compute the density
+    densitypost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.d))
+    # # Compute the target density
+    # densitypost = DataFrame(hcat(ch.d...), :auto)
+    # densitypost.group = data1.x
+    # densitypost.y = data1.y
+
+    # # Pivot densitypost
+    # myparse = u -> parse.(Int, replace.(u, "x" => ""))
+    # densitypost =
+    #     densitypost |>
+    #     x -> stack(x, Not(:group, :y), variable_name = "iter") |>
+    #     x -> transform!(x, :iter => myparse => :iter) |>
+    #     x -> sort!(x, [:iter, :group, :y])
+
     return anova_bnp_fitted(
         group_codes,
         group_probs,
         effects1,
         effects2,
-        fpost
+        fpost,
+        densitypost
     )
 end
 
@@ -84,6 +102,7 @@ group_probs(x::anova_bnp_fitted) = x.group_probs
 effects1(x::anova_bnp_fitted) = x.effects1
 effects2(x::anova_bnp_fitted) = x.effects2
 fpost(x::anova_bnp_fitted) = x.fpost
+density(x::anova_bnp_fitted) = x.densitypost
 
 # using Revise
 # using ANOVADDPTest
