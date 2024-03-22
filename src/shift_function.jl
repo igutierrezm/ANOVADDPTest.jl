@@ -19,7 +19,7 @@ function shift_function(fpost)
         # x -> subset(x, :F => y -> y .> 0 .+ 5e-3) |>
         # x -> subset(x, :F => y -> y .< 1 .- 5e-3) |>
         x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
-        x -> transform(x, [:F, :y] => ((x, y) -> x - y) => :shift) |>
+        x -> transform(x, [:shift, :y] => ((x, y) -> x - y) => :shift) |>
         x -> select(x, [:group, :y, :shift])
     return tbl_shift
 end
