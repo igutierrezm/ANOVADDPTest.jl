@@ -5,7 +5,7 @@ function shift_function(fpost)
 
     # Create a quantile function
     v = tbl_f0.y
-    f = tbl_f0.f .+ 1e-5
+    f = tbl_f0.f
     w = aweights(f / sum(f))
     custom_quantile(x) = quantile(v, w, x)
 
