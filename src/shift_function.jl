@@ -16,10 +16,8 @@ function shift_function(fpost)
         x -> groupby(x, :group) |>
         x -> transform(x, :f => (x -> cumsum(x)) => :F; ungroup = false) |>
         x -> transform(x, :F => (x -> x / maximum(x)) => :F; ungroup = false) |>
-        # x -> subset(x, :F => y -> y .> 0 .+ 5e-3) |>
-        # x -> subset(x, :F => y -> y .< 1 .- 5e-3) |>
         x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
-        # x -> transform(x, [:shift, :y] => ((x, y) -> x - y) => :shift) |>
+        x -> transform(x, [:shift, :y] => ((x, y) -> x - y) => :shift) |>
         x -> select(x, [:group, :y, :shift])
     return tbl_shift
 end
