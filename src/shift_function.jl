@@ -5,7 +5,7 @@ function shift_function(fpost)
 
     # Create a quantile function
     v = tbl_f0.y
-    f = tbl_f0.f .+ sqrt.(eps())
+    f = tbl_f0.f
     w = aweights(f / sum(f))
     custom_quantile(x) = quantile(v, w, x)
 
@@ -13,11 +13,13 @@ function shift_function(fpost)
     tbl_shift =
         tbl_f1 |>
         x -> sort(x, [:group, :y]) |>
-        x -> transform(x, :f => (x -> x .+ sqrt.(eps())) => :f) |>
         x -> groupby(x, :group) |>
         x -> transform(x, :f => (x -> cumsum(x)) => :F; ungroup = false) |>
         x -> transform(x, :F => (x -> x / maximum(x)) => :F; ungroup = false) |>
-        x -> transform(x, :F => (x -> custom_quantile(x) - v) => :shift) |>
+        x -> subset(x, :F => y -> y .> 0 .+ 1e-3) |>
+        x -> subset(x, :F => y -> y .< 1 .- 1e-3) |>
+        x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
+        x -> transform(x, [:F, :y] => ((x, y) -> x - y) => :shift) |>
         x -> select(x, [:group, :y, :shift])
     return tbl_shift
 end
