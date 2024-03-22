@@ -18,7 +18,7 @@ function shift_function(fpost)
         x -> transform(x, :F => (x -> x / maximum(x)) => :F; ungroup = false) |>
         x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
         x -> transform(x, [:shift, :y] => ((x, y) -> x - y) => :shift) |>
-        x -> subset(x, :F => x -> 1e-3 < x < 1 - 1e-3) |>
+        x -> subset(x, :F => x -> 1e-2 < x < 1 - 1e-2) |>
         x -> select(x, [:group, :y, :shift])
     return tbl_shift
 end
