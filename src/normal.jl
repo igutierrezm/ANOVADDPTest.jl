@@ -213,7 +213,24 @@ function logpredlik(model::NormalDDP, train, predict, i::Int, k::Int)
             0.5 * log(r̄0 / r̄1) -
             0.5 * log(2π)
         )
+    # TODO: Change by
+    # o0 = sqrt(s̄0 * (r̄0 + 1) / v̄0 / r̄0)
+    # out2 = Distributions.logpdf(TDist(2 * v̄0), (yi - ū0) / o0) - log(o0)
     # end
+end
+
+function logpredcdf(model::NormalDDP, train, predict, i::Int, k::Int)
+    @extract model : mu0_post lambda0_post a0_post b0_post gamma
+    @extract predict : y x
+    yi = y[i]
+    zi = iszero(gamma[x[i]]) ? 1 : x[i]
+    v̄0 = a0_post[k][zi]
+    r̄0 = lambda0_post[k][zi]
+    ū0 = mu0_post[k][zi]
+    s̄0 = b0_post[k][zi]
+    o0 = sqrt(s̄0 * (r̄0 + 1) / v̄0 / r̄0)
+    out = Distributions.logcdf(TDist(2 * v̄0), (yi - ū0) / o0)
+    return out
 end
 
 function logmglik(model::NormalDDP, j::Int, k::Int)

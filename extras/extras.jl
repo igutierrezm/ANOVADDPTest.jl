@@ -4,6 +4,7 @@ begin
     using DataFrames
     using Distributions
     using Statistics
+    using RCall
     using Random
     using TidierData
     using TidierPlots
@@ -17,11 +18,11 @@ X = rand(0:1, N, 1)
 y = 1.2 * (X[:, 1] .== 1) .* (2 * (rand(N) .<= 0.7) .- 1) .+ randn(N) / 2
 
 fm = anova_bnp_normal(y, X; standardize_y = true, iter = 10000, warmup = 5000);
-tbl_shift = shiftpost(fm)
+tbl_Fpost = ANOVADDPTest.Fpost(fm) #shiftpost(fm)
 
-tbl_shift |>
-    x -> subset(x, :group => x -> x .== 1)
-
-
-ggplot(tbl_shift, aes(y = "shift", x = "y")) +
-    geom_line()
+R"""
+$tbl_Fpost |>
+    dplyr::mutate(group = as.character(group)) |>
+    ggplot2::ggplot(ggplot2::aes(x = y, y = F, color = group)) +
+    ggplot2::geom_line()
+"""

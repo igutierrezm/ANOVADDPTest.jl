@@ -4,6 +4,7 @@ struct anova_bnp_fitted
     effects1::DataFrame
     effects2::DataFrame
     fpost::DataFrame
+    Fpost::DataFrame
     shiftpost::DataFrame
 end
 
@@ -71,6 +72,7 @@ function anova_bnp_normal(
 
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
+    Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
 
     # Compute the shift functions
     shiftpost = shift_function(fpost)
@@ -81,6 +83,7 @@ function anova_bnp_normal(
         effects1,
         effects2,
         fpost,
+        Fpost,
         shiftpost
     )
 end
@@ -90,4 +93,5 @@ group_probs(x::anova_bnp_fitted) = x.group_probs
 effects1(x::anova_bnp_fitted) = x.effects1
 effects2(x::anova_bnp_fitted) = x.effects2
 fpost(x::anova_bnp_fitted) = x.fpost
+Fpost(x::anova_bnp_fitted) = x.Fpost
 shiftpost(x::anova_bnp_fitted) = x.shiftpost
