@@ -28,8 +28,8 @@ function shift_function(Fpost)
         x -> DataFrames.filter(
             [:group1, :group2] => (x, y) -> x != y, x
         ) |>
-        x -> DataFrames.filter(:F1 => F1 -> 1e-3 < F1 < 1 - 1e-3, x) |>
-        x -> DataFrames.filter(:F2 => F2 -> 1e-3 < F2 < 1 - 1e-3, x) |>
+        x -> DataFrames.filter(:F1 => F1 -> 1e-2 < F1 < 1 - 1e-2, x) |>
+        x -> DataFrames.filter(:F2 => F2 -> 1e-2 < F2 < 1 - 1e-2, x) |>
         x -> select(x, [:group1, :group2, :y, :shift])
 
     return tbl_shift
