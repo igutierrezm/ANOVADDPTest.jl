@@ -15,7 +15,7 @@ N = 1000
 Random.seed!(1)
 X = rand(0:1, N, 1)
 y = 1.2 * (X[:, 1] .== 1) .+ randn(N) / 2
-y = 1.2 * (X[:, 1] .== 1) .* (2 * (rand(N) .<= 0.7) .- 1) .+ randn(N) / 2
+# y = 1.2 * (X[:, 1] .== 1) .* (2 * (rand(N) .<= 0.7) .- 1) .+ randn(N) / 2
 fm = anova_bnp_normal(y, X; standardize_y = true, iter = 10000, warmup = 5000, n = 100);
 tbl_shiftpost = ANOVADDPTest.shiftpost(fm)
 end
