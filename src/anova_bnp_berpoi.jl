@@ -46,7 +46,7 @@ function anova_bnp_berpoi(
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
 
     # Compute the shift functions
-    shiftpost = shift_function(fpost)
+    shiftpost = shift_function(Fpost)
 
     return anova_bnp_fitted(
         group_codes,

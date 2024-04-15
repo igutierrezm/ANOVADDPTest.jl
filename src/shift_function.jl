@@ -1,24 +1,36 @@
-function shift_function(fpost)
-    # Extract f for the treatment and control groups
-    tbl_f0 = filter(:group => (x -> x == 1), fpost) # control group
-    tbl_f1 = filter(:group => (x -> x != 1), fpost) # treatment group
+function shift_function(Fpost)
+    tbl_Fpost1 =
+        Fpost |>
+        x -> deepcopy(x) |>
+        x -> DataFrames.rename!(x, :group => :group1) |>
+        x -> DataFrames.rename!(x, :y => :y1) |>
+        x -> DataFrames.rename!(x, :F => :F1)
 
-    # Create a quantile function
-    v = tbl_f0.y
-    f = tbl_f0.f
-    w = aweights(f / sum(f))
-    custom_quantile(x) = quantile(v, w, x)
+    tbl_Fpost2 =
+        Fpost |>
+        x -> deepcopy(x) |>
+        x -> DataFrames.rename!(x, :group => :group2) |>
+        x -> DataFrames.rename!(x, :y => :y2) |>
+        x -> DataFrames.rename!(x, :F => :F2)
 
-    # Compute the shift function for each treatment group
     tbl_shift =
-        tbl_f1 |>
-        x -> sort(x, [:group, :y]) |>
-        x -> groupby(x, :group) |>
-        x -> transform(x, :f => (x -> cumsum(x)) => :F; ungroup = false) |>
-        x -> transform(x, :F => (x -> x / maximum(x)) => :F; ungroup = false) |>
-        x -> transform(x, :F => (x -> custom_quantile(x)) => :shift) |>
-        x -> transform(x, [:shift, :y] => ((x, y) -> x - y) => :shift) |>
-        x -> subset(x, :F => x -> 1e-4 .< x .< 1 - 1e-4) |>
-        x -> select(x, [:group, :y, :shift])
+        tbl_Fpost1 |>
+        x -> DataFrames.crossjoin(x, tbl_Fpost2) |>
+        x -> DataFrames.sort(x, [:group1, :group2, :F1, :F2]) |>
+        x -> DataFrames.filter([:F1, :F2] => (F1, F2) -> F2 >= F1, x) |>
+        x -> DataFrames.groupby(x, [:group1, :group2, :y1]) |>
+        x -> DataFrames.combine(first, x) |>
+        x -> DataFrames.transform(
+            x,
+            [:y1, :y2] => ((y1, y2) -> y2 - y1) => :shift
+        ) |>
+        x -> DataFrames.rename(x, :y1 => :y) |>
+        x -> DataFrames.filter(
+            [:group1, :group2] => (x, y) -> x != y, x
+        ) |>
+        x -> DataFrames.filter(:F1 => F1 -> 1e-4 < F1 < 1 - 1e-4, x) |>
+        x -> DataFrames.filter(:F2 => F2 -> 1e-4 < F2 < 1 - 1e-4, x) |>
+        x -> select(x, [:group1, :group2, :y, :shift])
+
     return tbl_shift
 end

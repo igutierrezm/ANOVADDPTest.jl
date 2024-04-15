@@ -75,7 +75,7 @@ function anova_bnp_normal(
     Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
 
     # Compute the shift functions
-    shiftpost = shift_function(fpost)
+    shiftpost = shift_function(Fpost)
 
     return anova_bnp_fitted(
         group_codes,
