@@ -30,6 +30,9 @@ function anova_bnp_bernoulli(
     # Train the model
     ch = train(rng, model, data0, data1; iter, warmup);
 
+    # Tidy up the chain for gamma
+    gamma_ch = gamma_chain(ch)
+
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
 
