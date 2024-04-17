@@ -1,11 +1,12 @@
 struct anova_bnp_fitted
     group_codes::DataFrame
     group_probs::DataFrame
+    gamma_chain::DataFrame
     effects1::DataFrame
     effects2::DataFrame
     fpost::DataFrame
-    Fpost::DataFrame
-    shiftpost::DataFrame
+    # Fpost::DataFrame
+    # shiftpost::DataFrame
 end
 
 # Fit the model in a more pleasant way
@@ -60,6 +61,9 @@ function anova_bnp_normal(
         @. data1.y = my0 + sy0 * data1.y
     end
 
+    # Tidy up the chain for gamma
+    gamma_ch = gamma_chain(ch)
+
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
 
@@ -72,19 +76,20 @@ function anova_bnp_normal(
 
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
-    Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
+    # Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
 
-    # Compute the shift functions
-    shiftpost = shift_function(Fpost)
+    # # Compute the shift functions
+    # shiftpost = shift_function(Fpost)
 
     return anova_bnp_fitted(
         group_codes,
         group_probs,
+        gamma_ch,
         effects1,
         effects2,
         fpost,
-        Fpost,
-        shiftpost
+        # Fpost,
+        # shiftpost
     )
 end
 
@@ -95,3 +100,4 @@ effects2(x::anova_bnp_fitted) = x.effects2
 fpost(x::anova_bnp_fitted) = x.fpost
 Fpost(x::anova_bnp_fitted) = x.Fpost
 shiftpost(x::anova_bnp_fitted) = x.shiftpost
+gamma_chain(x::anova_bnp_fitted) = x.gamma_chain

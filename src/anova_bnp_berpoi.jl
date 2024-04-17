@@ -32,6 +32,9 @@ function anova_bnp_berpoi(
     # Train the model
     ch = train(rng, model, data0, data1; iter, warmup);
 
+    # Tidy up the chain for gamma
+    gamma_ch = gamma_chain(ch)
+
     # Compute p(gamma | y)
     group_probs = gamma_posterior(ch);
 
@@ -44,17 +47,20 @@ function anova_bnp_berpoi(
 
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
+    # Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
 
-    # Compute the shift functions
-    shiftpost = shift_function(Fpost)
+    # # Compute the shift functions
+    # shiftpost = shift_function(Fpost)
 
     return anova_bnp_fitted(
         group_codes,
         group_probs,
+        gamma_ch,
         effects1,
         effects2,
         fpost,
-        shiftpost
+        # Fpost,
+        # shiftpost
     )
 end
 

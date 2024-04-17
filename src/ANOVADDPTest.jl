@@ -24,6 +24,7 @@ export group_codes, group_probs, effects1, effects2, fpost, shiftpost
 
 include("gamma_posterior.jl")
 include("gamma_codebook.jl")
+include("gamma_chain.jl")
 include("expandgrid.jl")
 include("womack.jl")
 include("normal.jl")
