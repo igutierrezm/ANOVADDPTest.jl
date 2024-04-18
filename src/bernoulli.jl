@@ -115,11 +115,7 @@ function logpredlik(model::BernoulliDDP, train, predict, i::Int, k::Int)
 end
 
 function logpredcdf(model::BernoulliDDP, train, predict, i::Int, k::Int)
-    @extract predict : y x
-    out = 0
-    if y[i] == 0
-        out = logpredlik(model, train, predict, i, k)
-    end
+    out = !predict.y[i] ? logpredlik(model, train, predict, i, k) : 0
     return out
 end
 
