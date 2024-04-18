@@ -1,4 +1,4 @@
-function shift_function(Fpost)
+function shift_function(Fpost; truncate = true)
     tbl_Fpost1 =
         Fpost |>
         x -> deepcopy(x) |>
@@ -27,10 +27,15 @@ function shift_function(Fpost)
         x -> DataFrames.rename(x, :y1 => :y) |>
         x -> DataFrames.filter(
             [:group1, :group2] => (x, y) -> x != y, x
-        ) |>
-        x -> DataFrames.filter(:F1 => F1 -> 1e-2 < F1 < 1 - 1e-2, x) |>
-        x -> DataFrames.filter(:F2 => F2 -> 1e-2 < F2 < 1 - 1e-2, x) |>
-        x -> select(x, [:group1, :group2, :y, :shift])
+        )
 
+    if truncate
+        tbl_shift =
+            tbl_shift |>
+            x -> DataFrames.filter(:F1 => F1 -> 1e-2 < F1 < 1 - 1e-2, x) |>
+            x -> DataFrames.filter(:F2 => F2 -> 1e-2 < F2 < 1 - 1e-2, x)
+    end
+
+    tbl_shift = select(tbl_shift, [:group1, :group2, :y, :shift])
     return tbl_shift
 end
