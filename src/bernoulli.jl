@@ -114,6 +114,15 @@ function logpredlik(model::BernoulliDDP, train, predict, i::Int, k::Int)
     end
 end
 
+function logpredcdf(model::BernoulliDDP, train, predict, i::Int, k::Int)
+    @extract predict : y x
+    out = 0
+    if y[i] == 0
+        out = logpredlik(model, train, predict, i, k)
+    end
+    return out
+end
+
 function logmglik(model::BernoulliDDP, j::Int, k::Int)
     @extract model : a2 b2 a2_post b2_post
     return logbeta(a2_post[k][j], b2_post[k][j]) - logbeta(a2, b2)

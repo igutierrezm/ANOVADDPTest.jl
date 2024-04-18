@@ -11,13 +11,13 @@ begin
 end
 
 begin
-N = 1000
-Random.seed!(1)
-X = rand(0:2, N, 1)
-y = 1.2 * (X[:, 1] .== 1) .+ randn(N) / 2
-# y = 1.2 * (X[:, 1] .== 1) .* (2 * (rand(N) .<= 0.7) .- 1) .+ randn(N) / 2
-fm = anova_bnp_normal(y, X; standardize_y = true, iter = 10000, warmup = 5000, n = 100);
-# tbl_shiftpost = ANOVADDPTest.shiftpost(fm)
+    N = 1000
+    Random.seed!(1)
+    x = rand(0:2, N)
+    d = @. 2 * (rand() <= 0.7) - 1
+    y = @. 1.2 * (x == 1) * d + randn() / 2
+    fm = anova_bnp_normal(y, x[:, :])
+    tbl_shiftpost = ANOVADDPTest.shiftpost(fm)
 end
 
 R"""

@@ -18,7 +18,7 @@ function train(
             gammachain[t0] = model.gamma[:]
             for i = 1:length(predict.y)
                 fchain[t0][i] = predlik(model, train, predict, i)
-                # Fchain[t0][i] = predcdf(model, train, predict, i)
+                Fchain[t0][i] = predcdf(model, train, predict, i)
             end
             # denchain[t0] .= density(model, predict)
         end

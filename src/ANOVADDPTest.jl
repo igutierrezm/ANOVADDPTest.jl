@@ -11,7 +11,7 @@ using StatsBase
 using StatsModels
 
 import Distributions: Beta, Gamma, Poisson
-import Distributions: pdf, logpdf, shape, scale, rate, rand
+import Distributions: cdf, pdf, logpdf, shape, scale, rate, rand
 import DPMNeal3: parent_dpm, logpredlik, update_hyperpars!, update_suffstats!
 
 export BernoulliDDP, NormalDDP, BerPoiDDP

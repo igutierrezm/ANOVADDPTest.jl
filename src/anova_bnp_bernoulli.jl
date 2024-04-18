@@ -10,8 +10,8 @@ function anova_bnp_bernoulli(
     b::Float64 = 4.0,
     a2::Float64 = 2.0,
     b2::Float64 = 4.0,
-    lb::Int = minimum(y),
-    ub::Int = maximum(y)
+    lb::Int = 0,
+    ub::Int = 1
 )
     # Set data for training
     data0 = BernoulliData(X, y)
@@ -45,10 +45,10 @@ function anova_bnp_bernoulli(
 
     # Compute p(y0 | y)
     fpost = DataFrame(group = data1.x, y = data1.y, f = mean(ch.f))
-    # Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
+    Fpost = DataFrame(group = data1.x, y = data1.y, F = mean(ch.F))
 
-    # # Compute the shift functions
-    # shiftpost = shift_function(Fpost)
+    # Compute the shift functions
+    shiftpost = shift_function(Fpost)
 
     return anova_bnp_fitted(
         group_codes,
@@ -57,8 +57,8 @@ function anova_bnp_bernoulli(
         effects1,
         effects2,
         fpost,
-        # Fpost,
-        # shiftpost
+        Fpost,
+        shiftpost
     )
 end
 
