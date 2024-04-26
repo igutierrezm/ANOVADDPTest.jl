@@ -18,8 +18,8 @@ struct BerPoiDDP <: AbstractDPM
     b1::Float64 # λ ~ Gamma(a1, b1) (λ from the berpoi distribution)
     alpha0::Float64 # α ~ Beta(α0, β0) (α from the berpoi distribution)
     beta0::Float64 # α ~ Beta(α0, β0) (α from the berpoi distribution)
-    a1_post::Vector{Vector{Int}}
-    b1_post::Vector{Vector{Int}}
+    a1_post::Vector{Vector{Float64}}
+    b1_post::Vector{Vector{Float64}}
     alpha0_post::Vector{Vector{Float64}}
     beta0_post::Vector{Vector{Float64}}
     sumlogfactystar::Vector{Vector{Float64}}
